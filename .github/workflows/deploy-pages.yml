@@ -1,0 +1,60 @@
+name: 更新行情并部署 Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+  schedule:
+    - cron: "7,22,37,52 * * * 1-5"
+    - cron: "37 0 * * 0,6"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 读取独立站代码
+        uses: actions/checkout@v4
+
+      - name: 使用 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 运行规则测试
+        run: npm test
+
+      - name: 刷新 Nasdaq 真实数据
+        run: npm run refresh
+
+      - name: 准备静态发布目录
+        run: |
+          mkdir dist
+          cp index.html styles.css app.js dashboard.json dist/
+
+      - name: 配置 GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: 上传静态网页
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 发布公开网址
+        id: deployment
+        uses: actions/deploy-pages@v4
