@@ -1,0 +1,11 @@
+{
+  "name": "anli-market-radar-pages",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "refresh": "node generate-dashboard.mjs",
+    "test": "node --test rules.test.mjs",
+    "check": "npm test && npm run refresh"
+  }
+}
