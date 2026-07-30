@@ -5,6 +5,9 @@ const reminder = document.querySelector("#reminder");
 const reminderTitle = document.querySelector("#reminder-title");
 const reminderBody = document.querySelector("#reminder-body");
 const reminderClose = document.querySelector("#reminder-close");
+const pageTitle = document.querySelector(".app-bar h1");
+
+let chartObserver;
 
 const state = {
   payload: null,
@@ -70,6 +73,23 @@ function freshness(value) {
   return `${Math.floor(hours / 24)}天前快照`;
 }
 
+function isDetailView() {
+  return window.location.hash === "#trendiq";
+}
+
+function snapshotHealth(value) {
+  const ageMinutes = Math.max(0, Math.round((Date.now() - Date.parse(value)) / 60_000));
+  const weekday = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Shanghai",
+    weekday: "short"
+  }).format(new Date());
+  const staleAfterMinutes = weekday === "Sat" || weekday === "Sun" ? 26 * 60 : 45;
+  return {
+    ageMinutes,
+    stale: ageMinutes > staleAfterMinutes
+  };
+}
+
 function showReminder(title, body) {
   reminderTitle.textContent = title;
   reminderBody.textContent = body;
@@ -100,6 +120,9 @@ function maybeAlert() {
 
 function render() {
   const { market, decision, calendar, generatedAt } = state.payload;
+  const detailView = isDetailView();
+  const health = snapshotHealth(generatedAt);
+  const evidenceWasOpen = Boolean(app.querySelector(".evidence")?.open);
   const selectedWeek = calendar.weeks[Math.min(state.weekIndex, calendar.weeks.length - 1)];
   const gambleTone =
     decision.gamble.code === "PROBE_ALLOWED"
@@ -278,6 +301,105 @@ function render() {
     </section>
   `;
 
+  document.body.classList.toggle("detail-view", detailView);
+  pageTitle.textContent = detailView ? "QQQ 技术分析" : "今天的大局观";
+  app.querySelector(".cloud-note")?.remove();
+
+  const opportunity = app.querySelector(".opportunity");
+  const headingMeta = opportunity.querySelector(".section-heading small");
+  const sectionMeta = document.createElement("div");
+  sectionMeta.className = "section-meta";
+  headingMeta.before(sectionMeta);
+  sectionMeta.append(headingMeta);
+  headingMeta.insertAdjacentHTML(
+    "afterbegin",
+    `<b class="auto-state ${health.stale ? "stale" : ""}">${health.stale ? "快照偏旧" : "自动更新"}</b>`
+  );
+
+  if (detailView) {
+    opportunity.classList.add("detail-focus");
+    opportunity.insertAdjacentHTML("beforebegin", '<a class="detail-back" href="./">← 返回大局观</a>');
+    opportunity.querySelector(".direct-answer").insertAdjacentHTML(
+      "afterend",
+      `<section class="data-gate ${health.stale ? "stale" : "ready"}" aria-live="polite">
+        <div>
+          <span>数据闸门</span>
+          <strong>${health.stale ? "云端快照偏旧，请先用券商实时行情复核" : "云端快照已接通自动更新"}</strong>
+        </div>
+        <p>页面每60秒检查一次；本次生成于 ${escapeHtml(formatDateTime(generatedAt))}，最新完整日K为 ${escapeHtml(market.quoteTime ?? "—")}。公开行情为延时数据。</p>
+      </section>`
+    );
+    opportunity.querySelector(".technical-strip").insertAdjacentHTML(
+      "afterend",
+      `<div class="analysis-grid">
+        <article>
+          <span>趋势结构</span>
+          <strong>${escapeHtml(market.trendLabel)}</strong>
+          <p>现价 ${money(market.price)}；MA20 ${latestBar?.ma20 == null ? "—" : money(latestBar.ma20)}，MA50 ${latestBar?.ma50 == null ? "—" : money(latestBar.ma50)}，MA200 ${latestBar?.ma200 == null ? "—" : money(latestBar.ma200)}。</p>
+        </article>
+        <article>
+          <span>动能状态</span>
+          <strong>RSI ${market.rsi14.toFixed(1)}</strong>
+          <p>MACD ${market.macd.toFixed(3)} / 信号 ${market.macdSignal.toFixed(3)}；超买超卖只描述位置。</p>
+        </article>
+        <article>
+          <span>关键价位</span>
+          <strong>${money(market.support)} — ${money(market.resistance)}</strong>
+          <p>第一观察线 ${money(decision.gamble.firstGate)}；站上只触发重新评估，不等于自动买入。</p>
+        </article>
+        <article>
+          <span>风险动作</span>
+          <strong>${escapeHtml(decision.gamble.exposure)}</strong>
+          <p>${escapeHtml(decision.guardrails[0] ?? "按规则核对，不自动下单。")}</p>
+        </article>
+      </div>`
+    );
+    const evidence = opportunity.querySelector(".evidence");
+    evidence.open = evidenceWasOpen;
+    const qualityItem = evidence.querySelector("li:nth-child(2)");
+    qualityItem?.insertAdjacentHTML(
+      "afterend",
+      "<li>结构质量只表示字段与历史样本完整，不代表实时行情。</li>"
+    );
+    app.querySelector(".catalyst")?.remove();
+  } else {
+    opportunity.classList.add("module-drilldown");
+    opportunity.tabIndex = 0;
+    opportunity.setAttribute("role", "link");
+    opportunity.setAttribute("aria-label", "打开 QQQ 详细技术分析");
+    opportunity
+      .querySelectorAll(".chart-head, .legend, .chart-shell, .technical-strip, .evidence")
+      .forEach((element) => element.remove());
+    opportunity.insertAdjacentHTML(
+      "beforeend",
+      `<span class="detail-entry">
+        <b>完整日K · MACD · RSI · 支撑压力 · 判断依据</b>
+        <small>点击整个模块进入，一页看清技术结构</small>
+      </span>`
+    );
+    sectionMeta.insertAdjacentHTML(
+      "beforeend",
+      '<span class="detail-link">查看详细技术分析 <b aria-hidden="true">→</b></span>'
+    );
+    const openDetail = () => {
+      window.location.hash = "trendiq";
+    };
+    opportunity.addEventListener("click", (event) => {
+      if (event.target.closest("a, button, details, input, canvas")) return;
+      openDetail();
+    });
+    opportunity.addEventListener("keydown", (event) => {
+      if (event.target !== opportunity || !["Enter", " "].includes(event.key)) return;
+      event.preventDefault();
+      openDetail();
+    });
+  }
+
+  app.insertAdjacentHTML(
+    "beforeend",
+    '<p class="footer-note">公开版使用 Nasdaq 延时报价；网页每60秒检查云端快照。技术分析只作决策辅助，不自动下单。</p>'
+  );
+
   app.querySelectorAll("[data-range]").forEach((button) => {
     button.addEventListener("click", () => {
       state.range = Number(button.dataset.range);
@@ -290,7 +412,7 @@ function render() {
       render();
     });
   });
-  drawChart(market, state.range);
+  if (detailView) drawChart(market, state.range);
 }
 
 function emaSeries(values, period) {
@@ -527,14 +649,18 @@ function drawChart(market, range) {
     tooltip.hidden = true;
   });
   draw();
-  new ResizeObserver(draw).observe(canvas);
+  chartObserver?.disconnect();
+  chartObserver = new ResizeObserver(draw);
+  chartObserver.observe(canvas);
 }
 
-async function load() {
-  refreshButton.disabled = true;
-  refreshButton.textContent = "复核中";
+async function load({ silent = false } = {}) {
+  if (!silent) {
+    refreshButton.disabled = true;
+    refreshButton.textContent = "复核中";
+  }
   try {
-    const response = await fetch(`./dashboard.json?t=${Date.now()}`, { cache: "no-store" });
+    const response = await fetch(`./data/dashboard.json?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`数据文件返回 HTTP ${response.status}`);
     const payload = await response.json();
     if (!payload?.market?.bars?.length || !payload?.decision || !payload?.calendar?.weeks) {
@@ -554,8 +680,10 @@ async function load() {
       document.querySelector("#retry-button")?.addEventListener("click", load);
     }
   } finally {
-    refreshButton.disabled = false;
-    refreshButton.textContent = "刷新";
+    if (!silent) {
+      refreshButton.disabled = false;
+      refreshButton.textContent = "刷新";
+    }
   }
 }
 
@@ -579,13 +707,16 @@ alertButton.addEventListener("click", async () => {
     showReminder(state.payload.decision.alert.title, state.payload.decision.alert.body);
   }
 });
-refreshButton.addEventListener("click", load);
+refreshButton.addEventListener("click", () => load());
 reminderClose.addEventListener("click", () => {
   reminder.hidden = true;
 });
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") load();
+  if (document.visibilityState === "visible") load({ silent: true });
 });
 updateAlertButton();
+window.addEventListener("hashchange", () => {
+  if (state.payload) render();
+});
 load();
-setInterval(load, 60_000);
+setInterval(() => load({ silent: true }), 60_000);

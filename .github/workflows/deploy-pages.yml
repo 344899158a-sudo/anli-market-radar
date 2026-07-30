@@ -35,10 +35,8 @@ jobs:
       - name: 刷新 Nasdaq 真实数据
         run: npm run refresh
 
-      - name: 准备静态发布目录
-        run: |
-          mkdir dist
-          cp index.html styles.css app.js dashboard.json dist/
+      - name: 验证将要发布的快照
+        run: npm run validate
 
       - name: 配置 GitHub Pages
         uses: actions/configure-pages@v5
@@ -46,7 +44,7 @@ jobs:
       - name: 上传静态网页
         uses: actions/upload-pages-artifact@v4
         with:
-          path: dist
+          path: public
 
   deploy:
     environment:

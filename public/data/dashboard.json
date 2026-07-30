@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-30T02:07:50.582Z",
+  "generatedAt": "2026-07-30T15:00:20.631Z",
   "market": {
     "symbol": "QQQ",
-    "price": 661.73,
-    "changePct": -2.04,
-    "quoteLabel": "Jul 29, 2026",
+    "price": 679.85,
+    "changePct": 2.74,
+    "quoteLabel": "Jul 30, 2026 10:59 AM ET",
     "quoteTime": "2026-07-29",
     "provider": "Nasdaq.com 公开延时报价",
     "delayed": true,
@@ -1994,10 +1994,10 @@
     "macd": -10.852,
     "macdSignal": -5.896,
     "return20Pct": -10.14,
-    "distanceMa20Pct": -6.05,
-    "distanceMa50Pct": -7.55,
-    "distanceMa200Pct": 2.73,
-    "distanceHigh52wPct": -11.61,
+    "distanceMa20Pct": -3.48,
+    "distanceMa50Pct": -5.02,
+    "distanceMa200Pct": 5.54,
+    "distanceHigh52wPct": -9.19,
     "trend": "DOWN",
     "trendLabel": "日K下跌趋势",
     "positionCode": "RECOVERY",
@@ -2011,7 +2011,7 @@
     }
   },
   "calendar": {
-    "generatedAt": "2026-07-30T02:07:50.582Z",
+    "generatedAt": "2026-07-30T15:00:20.631Z",
     "verifiedAt": "2026-07-29T08:50:00+08:00",
     "verificationStatus": "已核验",
     "methodology": "宏观日期取自美联储、BLS、BEA官方日历；财报取公司投资者关系页面；未核验日期不显示。",
@@ -2323,12 +2323,12 @@
   },
   "decision": {
     "ruleVersion": "anli-pages-1.0.0",
-    "generatedAt": "2026-07-30T02:07:50.582Z",
+    "generatedAt": "2026-07-30T15:00:20.631Z",
     "question": "这个位置，可以博一下吗？",
     "gamble": {
       "code": "WAIT_EVENT",
       "label": "暂时不博，等事件落地",
-      "detail": "日K仍弱且美国 Q2 GDP 初值 + 6月PCE临近；先等结果，再看能否日线站上 $704.33。",
+      "detail": "日K仍弱且Apple（AAPL）FY2026 Q3 财报临近；先等结果，再看能否日线站上 $704.33。",
       "exposure": "新增仓0%；已有仓不在急跌中机械砍仓",
       "firstGate": 704.33
     },
@@ -2340,19 +2340,20 @@
       "expectationLabel": "预期已明显回吐，防过度恐慌",
       "expectationDetail": "QQQ近20日-10.1%，RSI 32.4；超卖只代表反弹概率上升，不代表基本面或趋势已经反转。",
       "nextEvent": {
-        "id": "gdp-pce",
-        "at": "2026-07-30T08:30:00-04:00",
-        "category": "宏观",
-        "title": "美国 Q2 GDP 初值 + 6月PCE",
+        "id": "aapl-q3",
+        "at": "2026-07-30T17:00:00-04:00",
+        "category": "财报",
+        "title": "Apple（AAPL）FY2026 Q3 财报",
         "importance": 4,
-        "source": "U.S. Bureau of Economic Analysis",
-        "sourceUrl": "https://www.bea.gov/news/schedule/full",
-        "verification": "官方日历确认",
-        "note": "增长与通胀同日发布，利率预期可能快速重定价。",
+        "source": "Apple Investor Relations",
+        "sourceUrl": "https://www.apple.com/investor/earnings-call/",
+        "verification": "公司官网确认",
+        "note": "盘后；关注iPhone、服务与中国市场。",
         "scope": [
-          "全市场"
+          "AAPL",
+          "QQQ"
         ],
-        "hoursAway": 10.369282777777778
+        "hoursAway": 5.994269166666666
       }
     },
     "scenarios": [
@@ -2370,9 +2371,9 @@
       }
     ],
     "alert": {
-      "signature": "WAIT_EVENT|WAIT_FOR_RELEASE|gdp-pce|24h",
+      "signature": "WAIT_EVENT|WAIT_FOR_RELEASE|aapl-q3|6h",
       "title": "QQQ：暂时不博，等事件落地",
-      "body": "不在事件前抢反弹，等落地后找错杀；美国 Q2 GDP 初值 + 6月PCE · 10.4小时后。"
+      "body": "不在事件前抢反弹，等落地后找错杀；Apple（AAPL）FY2026 Q3 财报 · 6.0小时后。"
     },
     "guardrails": [
       "超买/超卖只描述位置，不单独触发买卖。",

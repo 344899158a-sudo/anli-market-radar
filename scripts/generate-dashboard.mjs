@@ -15,7 +15,7 @@ const payload = {
   decision: buildDecision(market, calendar, now)
 };
 
-const outputDir = root;
+const outputDir = join(root, "public", "data");
 await mkdir(outputDir, { recursive: true });
 await writeFile(
   join(outputDir, "dashboard.json"),

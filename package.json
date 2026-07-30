@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "refresh": "node generate-dashboard.mjs",
-    "test": "node --test rules.test.mjs",
-    "check": "npm test && npm run refresh"
+    "refresh": "node scripts/generate-dashboard.mjs",
+    "validate": "node scripts/validate-dashboard.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm test && npm run refresh && npm run validate"
   }
 }
