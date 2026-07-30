@@ -39,7 +39,7 @@ test("浏览器与 Pages 构建都有自动更新及发布闸门", async () => {
   assert.match(app, /cache: "no-store"/);
   assert.match(app, /setInterval\(\(\) => load\(\{ silent: true \}\), 60_000\)/);
   assert.match(app, /visibilitychange/);
-  assert.match(workflow, /cron: "7,22,37,52 \* \* \* 1-5"/);
+  assert.match(workflow, /cron: "11,26,41,56 \* \* \* 1-5"/);
   assert.match(workflow, /npm run refresh[\s\S]*npm run validate/);
   assert.match(workflow, /path: public/);
   assert.match(generator, /join\(root, "public", "data"\)/);
