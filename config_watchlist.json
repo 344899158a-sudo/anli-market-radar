@@ -1,0 +1,374 @@
+{
+    "host":  "127.0.0.1",
+    "port":  8775,
+    "poll_seconds":  30,
+    "alpaca_feed":  "iex",
+    "history_days":  220,
+    "benchmark":  "QQQ",
+    "rules":  {
+                  "ma_days":  50,
+                  "drawdown_lookback":  20,
+                  "black_swan_drawdown_pct":  -8.0,
+                  "stabilization_days":  3,
+                  "max_entry_day_gain_pct":  4.99,
+                  "max_gap_pct":  3.0,
+                  "min_volume_ratio":  0.8,
+                  "ready_score":  75
+              },
+    "sector_benchmarks":  {
+                              "半导体":  "SOXX",
+                              "计算机硬件与电子制造":  "XLK",
+                              "云计算、软件与AI":  "XLK",
+                              "网络与通信":  "XLC",
+                              "光电与机器视觉":  "XLK",
+                              "太空、无人机与国防":  "XAR",
+                              "核能与清洁能源":  "XLU",
+                              "量子计算":  "QTUM",
+                              "医疗健康":  "XLV",
+                              "工业与专业服务":  "XLI",
+                              "消费与数字媒体":  "XLC",
+                              "美股巨头":  "QQQ"
+                          },
+    "symbols":  [
+                    {
+                        "symbol":  "DELL",
+                        "name":  "Dell Technologies",
+                        "sector":  "计算机硬件与电子制造",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "OUST",
+                        "name":  "Ouster",
+                        "sector":  "光电与机器视觉",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "SNDK",
+                        "name":  "SanDisk",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "MU",
+                        "name":  "Micron Technology",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "LITE",
+                        "name":  "Lumentum Holdings",
+                        "sector":  "光电与机器视觉",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "MRVL",
+                        "name":  "Marvell Technology",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "GLW",
+                        "name":  "Corning",
+                        "sector":  "光电与机器视觉",
+                        "quality_approved":  true,
+                        "catalyst_date":  "2026-07-29"
+                    },
+                    {
+                        "symbol":  "RCAT",
+                        "name":  "Red Cat Holdings",
+                        "sector":  "太空、无人机与国防",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "ANET",
+                        "name":  "Arista Networks",
+                        "sector":  "网络与通信",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "RGTI",
+                        "name":  "Rigetti Computing",
+                        "sector":  "量子计算",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "DOCN",
+                        "name":  "DigitalOcean Holdings",
+                        "sector":  "云计算、软件与AI",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "ONDS",
+                        "name":  "Ondas Holdings",
+                        "sector":  "太空、无人机与国防",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "NOK",
+                        "name":  "Nokia",
+                        "sector":  "网络与通信",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "ASTS",
+                        "name":  "AST SpaceMobile",
+                        "sector":  "太空、无人机与国防",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "AMD",
+                        "name":  "Advanced Micro Devices",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "NET",
+                        "name":  "Cloudflare",
+                        "sector":  "云计算、软件与AI",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "SMR",
+                        "name":  "NuScale Power",
+                        "sector":  "核能与清洁能源",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "CGNX",
+                        "name":  "Cognex",
+                        "sector":  "光电与机器视觉",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "SMCI",
+                        "name":  "Super Micro Computer",
+                        "sector":  "计算机硬件与电子制造",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "TEM",
+                        "name":  "Tempus AI",
+                        "sector":  "医疗健康",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "UNH",
+                        "name":  "UnitedHealth Group",
+                        "sector":  "医疗健康",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "ARM",
+                        "name":  "Arm Holdings",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "HIMX",
+                        "name":  "Himax Technologies",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "ON",
+                        "name":  "onsemi",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "OKLO",
+                        "name":  "Oklo",
+                        "sector":  "核能与清洁能源",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "LPTH",
+                        "name":  "LightPath Technologies",
+                        "sector":  "光电与机器视觉",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "SPCX",
+                        "name":  "SpaceX（未公开上市）",
+                        "sector":  "太空、无人机与国防",
+                        "quality_approved":  false,
+                        "catalyst_date":  null,
+                        "unlisted":  true
+                    },
+                    {
+                        "symbol":  "ADI",
+                        "name":  "Analog Devices",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "FORM",
+                        "name":  "FormFactor",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "SANM",
+                        "name":  "Sanmina",
+                        "sector":  "计算机硬件与电子制造",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "QCOM",
+                        "name":  "Qualcomm",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "NFLX",
+                        "name":  "Netflix",
+                        "sector":  "消费与数字媒体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "NVDA",
+                        "name":  "NVIDIA",
+                        "sector":  "美股巨头",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "ACM",
+                        "name":  "AECOM",
+                        "sector":  "工业与专业服务",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "FCN",
+                        "name":  "FTI Consulting",
+                        "sector":  "工业与专业服务",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "TTMI",
+                        "name":  "TTM Technologies",
+                        "sector":  "计算机硬件与电子制造",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "AVGO",
+                        "name":  "Broadcom",
+                        "sector":  "半导体",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "ACN",
+                        "name":  "Accenture",
+                        "sector":  "工业与专业服务",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "GEHC",
+                        "name":  "GE HealthCare",
+                        "sector":  "医疗健康",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "MSFT",
+                        "name":  "Microsoft",
+                        "sector":  "美股巨头",
+                        "quality_approved":  true,
+                        "catalyst_date":  "2026-07-28"
+                    },
+                    {
+                        "symbol":  "NBIS",
+                        "name":  "Nebius Group",
+                        "sector":  "云计算、软件与AI",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "AMZN",
+                        "name":  "Amazon",
+                        "sector":  "美股巨头",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "NVO",
+                        "name":  "Novo Nordisk",
+                        "sector":  "医疗健康",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "META",
+                        "name":  "Meta Platforms",
+                        "sector":  "美股巨头",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "OPCH",
+                        "name":  "Option Care Health",
+                        "sector":  "医疗健康",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "ORCL",
+                        "name":  "Oracle",
+                        "sector":  "云计算、软件与AI",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "HROW",
+                        "name":  "Harrow",
+                        "sector":  "医疗健康",
+                        "quality_approved":  true,
+                        "catalyst_date":  null
+                    },
+                    {
+                        "symbol":  "AAPL",
+                        "name":  "Apple",
+                        "sector":  "美股巨头",
+                        "quality_approved":  true,
+                        "catalyst_date":  "2026-07-30"
+                    }
+                ],
+    "holdings":  [
+
+                 ]
+}

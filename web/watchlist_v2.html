@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07110f">
+  <title>Anli 原则驱动实时机会雷达</title>
+  <link rel="stylesheet" href="/qqq.css">
+  <link rel="stylesheet" href="/watchlist_v2.css?v=20260731-unified2">
+  <link rel="stylesheet" href="/technical_advanced.css?v=20260724-2">
+  <link rel="stylesheet" href="/technical_simple.css?v=20260725-1">
+  <link rel="stylesheet" href="/decision_center.css?v=20260724-1">
+</head>
+<body>
+<header>
+  <div>
+    <p class="eyebrow">ANLI PRINCIPLE-DRIVEN OPPORTUNITY RADAR</p>
+    <h1>原则驱动实时机会雷达</h1>
+    <p class="sub">48只重点股票 · 量价每30秒刷新 · AI核对盘前/盘中/盘后异动、最新新闻与SEC原始披露</p>
+  </div>
+  <div class="actions">
+    <a class="qqq-console-link" href="/qqq_trendiq.html">QQQ 决策雷达</a>
+    <a class="checkin-link" href="/checkin.html">&#32426;&#24459;&#25171;&#21345;</a>
+    <button id="notifyBtn" class="secondary">开启本地提醒</button>
+    <button id="refreshBtn">立即刷新</button>
+  </div>
+</header>
+<nav class="mobile-module-nav" aria-label="Mobile module navigation">
+  <a href="#decisionCenter">&#32426;&#24459;</a>
+  <a href="#marketOverview">&#22823;&#30424;</a>
+  <a href="#eventCalendar">&#20107;&#20214;</a>
+  <a href="#qqqRadar">QQQ</a>
+  <a href="#sectorPulse">&#26495;&#22359;</a>
+  <a href="#opportunityPanel">&#26426;&#20250;</a>
+  <a href="#watchlistPanel">&#32929;&#31080;</a>
+  <a href="#technicalDetail">&#25216;&#26415;</a>
+  <a href="#aiDetail">AI/SEC</a>
+</nav>
+<main>
+  <section class="status-grid">
+    <article class="metric"><span>行情连接</span><strong id="connection">检查中</strong><small id="feed">—</small></article>
+    <article class="metric hero-metric"><span>可行动机会</span><strong id="readyCount">0</strong><small>量价与AI同时通过</small></article>
+    <article class="metric"><span>临门一脚</span><strong id="nearCount">0</strong><small>仅差一个硬条件</small></article>
+    <article class="metric"><span>等待AI</span><strong id="aiReviewCount">0</strong><small>量价已通过</small></article>
+    <article class="metric"><span>AI基本面</span><strong id="aiConnection">检查中</strong><small id="aiModel">—</small></article>
+    <article class="metric"><span>数据时间</span><strong id="updated">—</strong><small id="poll">每30秒</small></article>
+  </section>
+
+  <section id="setup" class="setup hidden"><strong>公开行情暂不可用</strong><p>系统会自动重试，免Key公开行情可能短暂限流。</p></section>
+  <section id="decisionCenter" class="panel decision-center">
+    <div class="panel-title"><h2>今日纪律行动</h2><span id="decisionAsOf">正在读取冻结决策快照</span></div>
+    <div class="decision-center-metrics">
+      <article><span>账户风险状态</span><b id="decisionRiskState">UNKNOWN</b><small>冻结优先于任何机会评分</small></article>
+      <article><span>必须处理</span><b id="decisionMustAct">0</b><small>EXIT / REDUCE / FREEZE</small></article>
+      <article><span>规则版本</span><b id="decisionRuleVersion">—</b><small>同输入、同版本、同结果</small></article>
+    </div>
+    <div id="decisionActions" class="decision-actions"><p class="empty">正在读取今日行动…</p></div>
+  </section>
+  <section id="marketOverview" class="panel market-overview-panel home-core-panel module-drilldown" data-detail-href="/qqq_trendiq.html" tabindex="0" role="link" aria-label="打开 QQQ 大局观详细技术分析">
+    <div class="panel-title">
+      <div><p class="module-kicker">模块 A · 今天的大局观</p><h2>QQQ 大盘趋势与位置</h2></div>
+      <div class="market-module-meta">
+        <span id="marketAsOf">正在读取QQQ日线与市场宽度</span>
+      </div>
+    </div>
+    <div class="market-regime-head">
+      <div class="market-score-ring"><strong id="marketScore">—</strong><span>环境分 / 100</span></div>
+      <div><span id="marketRegime" class="market-regime-tag">等待数据</span><h3 id="marketPosition">当前位置：待确认</h3><p id="marketAction">正在按趋势 → 位置 → 风险顺序计算。</p><small id="marketExposure">风险预算建议：等待确认</small></div>
+    </div>
+    <div id="marketJointAction" class="market-joint-action">正在把大盘位置与未来事件联动…</div>
+    <div class="market-primary-grid">
+      <section class="market-chart-section">
+        <div class="nasdaq-chart-title"><div><h3>QQQ 日K线</h3><span id="marketChartSubtitle">读取最近6个月OHLCV</span></div><div class="kline-legend"><span class="up">上涨</span><span class="down">下跌</span><span class="ma20">MA20</span><span class="ma50">MA50</span><span class="ma200">MA200</span></div></div>
+        <div id="marketKline" class="nasdaq-kline"><p class="empty">正在加载可靠日K…</p></div>
+      </section>
+      <aside id="marketPositionMetrics" class="market-position-metrics"><p class="empty">正在计算位置指标…</p></aside>
+    </div>
+    <div id="marketAssets" class="market-asset-grid"></div>
+    <div class="market-logic-title"><h3>系统判断依据</h3><span>方向 → 宽度 → 波动率 → 宏观 → 动作</span></div>
+    <div id="marketChecks" class="market-checks"></div>
+    <p id="marketLimitations" class="market-limitations"></p>
+  </section>
+
+  <section id="eventCalendar" class="panel event-calendar-panel home-core-panel">
+    <div class="panel-title">
+      <div><p class="module-kicker">模块 B · 风险提前量</p><h2>未来四周重大事件</h2><p>只显示可追溯日期；按周评估风险，不等事件发生后再处理仓位</p></div>
+      <span id="eventVerifiedAt">正在核验官方日历</span>
+    </div>
+    <div id="eventCalendarSummary" class="event-calendar-summary"></div>
+    <div id="eventWeeks" class="event-weeks"><p class="empty">正在生成未来四周风险表…</p></div>
+    <p id="eventMethodology" class="market-limitations"></p>
+  </section>
+
+  <section id="qqqRadar" class="panel qqq-radar-panel">
+    <div class="panel-title"><div><h2>QQQ 盘中触发雷达</h2><p>大局观通过后，再用日线/4小时定方向与15分钟/1小时确认入场</p></div><span id="qqqRadarAsOf">正在计算QQQ多周期结构</span></div>
+    <div class="qqq-radar-hero">
+      <div class="qqq-radar-score"><strong id="qqqRadarScore">—</strong><span>/ 100</span><small>条件完成度 · 非胜率</small></div>
+      <div class="qqq-radar-verdict"><span id="qqqRadarStance" class="qqq-radar-tag">等待数据</span><h3 id="qqqRadarHeadline">正在读取QQQ技术结构…</h3><p id="qqqRadarNext">等待下一触发条件。</p><small id="qqqRadarGrade">—</small></div>
+      <a class="qqq-radar-open" href="/qqq_trendiq.html">打开完整K线与决策逻辑 →</a>
+    </div>
+    <div id="qqqRadarGate" class="qqq-radar-gate">正在核对数据时效…</div>
+    <div id="qqqRadarFrames" class="qqq-radar-frames"></div>
+    <div id="qqqRadarLevels" class="qqq-radar-levels"></div>
+  </section>
+  <section id="sectorPulse" class="panel sector-pulse-panel">
+    <div class="panel-title"><h2>半导体实时决策台</h2><span id="pulseAsOf">先发现异动，再确认趋势，最后决定是否执行</span></div>
+    <div class="pulse-hero">
+      <div><span id="pulseState" class="pulse-state">正在计算</span><h3 id="pulseAction">读取半导体板块广度与领涨结构…</h3><small id="pulseConfidence">预测置信度：—</small></div>
+      <div id="pulseMetrics" class="pulse-metrics"></div>
+    </div>
+    <div class="pulse-columns">
+      <section><h3>优先观察顺序（不是涨幅榜）</h3><div id="pulseLeaders" class="pulse-leaders"><p class="empty">正在筛选…</p></div></section>
+      <section><h3>历史相似情景</h3><div id="pulseAnalogs" class="pulse-analogs"><p class="empty">正在统计…</p></div></section>
+    </div>
+    <div id="pulseLadder" class="pulse-ladder"></div>
+  </section>
+  <section id="opportunityPanel" class="panel opportunity-panel">
+    <div class="panel-title"><h2>现在最值得关注</h2><span>按四层原则与AI复核综合排序</span></div>
+    <div id="opportunityCards" class="opportunity-grid"><p class="empty">正在计算机会排序…</p></div>
+  </section>
+
+  <section id="sectorPanel" class="panel sector-panel">
+    <div class="panel-title"><h2>行业前置门槛</h2><span>行业ETF是否站上50日线</span></div>
+    <div id="sectors" class="sector-grid"></div>
+  </section>
+
+  <section id="watchlistPanel" class="panel controls">
+    <div class="tabs">
+      <button class="tab active" data-filter="ALL">全部</button>
+      <button class="tab" data-filter="ACTION">可行动</button>
+      <button class="tab" data-filter="NEAR">临门一脚</button>
+      <button class="tab" data-filter="AI_REVIEW">等待AI</button>
+      <button class="tab" data-filter="VETO">基本面否决</button>
+      <button class="tab" data-filter="HOLDING">我的持仓</button>
+    </div>
+    <div class="right-controls">
+      <select id="sectorSelect"><option value="ALL">全部行业</option></select>
+      <label class="search"><span>⌕</span><input id="search" placeholder="搜索代码或公司"></label>
+    </div>
+  </section>
+
+  <section class="panel table-wrap">
+    <table class="opportunity-table">
+      <thead><tr><th>股票</th><th>机会阶段</th><th>价格/今日</th><th>规则32</th><th>错杀幅度</th><th>四层检查</th><th>AI复核</th><th>下一步</th><th>持仓</th></tr></thead>
+      <tbody id="signalRows"><tr><td colspan="9" class="empty">正在读取实时行情…</td></tr></tbody>
+    </table>
+  </section>
+
+  <section id="technicalDetail" class="panel technical-detail">
+    <div class="panel-title"><h2>一眼看懂技术分析</h2><span id="technicalSource">点击股票代码查看</span></div>
+    <div id="technicalContent"><p class="empty">点击表格中的股票代码，查看趋势、动量、成交量、支撑阻力与买卖信号。</p></div>
+  </section>
+  <section id="aiDetail" class="panel ai-detail">
+    <div class="panel-title"><h2>AI异动、新闻、SEC披露与黑天鹅复核</h2><span>事件驱动第二层风控 · 不替代你的交易纪律</span></div>
+    <p class="empty">点击“查看AI依据”查看事件等级、三时段异动、新闻时间线、SEC申报及进场结论。</p>
+  </section>
+
+  <section class="lower-grid">
+    <article class="panel alerts"><div class="panel-title"><h2>实时提醒</h2><span>状态变化后触发，本机保存</span></div><div id="alerts"><p class="empty">暂无提醒</p></div></article>
+    <article class="panel method">
+      <div class="panel-title"><h2>你的市场→板块→个股原则</h2><span>任何一层不过都不行动</span></div>
+      <ol>
+        <li><b>行业前景：</b>行业不是结构性衰退，行业ETF趋势通过。</li>
+        <li><b>公司质地：</b>事先认可，基本面和护城河未被证伪。</li>
+        <li><b>均值回归：</b>错杀幅度足够，连续2–3日企稳，并站上50日线。</li>
+        <li><b>催化剂距离：</b>2–6周为甜蜜区；无明确催化剂只适合小仓、快进快出。</li>
+      </ol>
+      <p>执行顺序：先确认市场环境支持，再确认板块资金方向，最后检查个股趋势、相对强度、基本面、催化剂与退出条件。任何硬条件未通过，都不因害怕错过而强行交易。</p>
+    </article>
+  </section>
+</main>
+<div id="toast" class="toast"></div>
+<script src="/watchlist_v2.js?v=20260731-unified3"></script>
+<script src="/technical_advanced.js?v=20260724-1"></script>
+<script src="/technical_simple.js?v=20260731-unified2"></script>
+<script src="/decision_center.js?v=20260724-1"></script>
+</body>
+</html>

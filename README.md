@@ -1,28 +1,26 @@
 # ANLI Market Radar
 
-独立的手机端 QQQ 大盘状态与未来四周事件雷达。
+ANLI 原则驱动交易决策看板的公开只读版本。电脑版与手机版使用同一套 HTML、JavaScript、规则引擎和快照数据，只通过响应式布局适配不同屏幕。
 
-- 公开首页：<https://344899158a-sudo.github.io/anli-market-radar/>
-- QQQ 技术详情：在首页点击第一张模块，进入 `#trendiq`。
-- 首页与详情共用同一份 `public/data/dashboard.json`，不会复制交易规则。
-- 浏览器每60秒检查云端快照，回到前台时也会立即复核。
+## 页面内容
 
-## 数据与边界
+- 大盘环境、未来四周事件、QQQ 多周期决策雷达
+- 板块广度、机会排序、48 只重点股票
+- 个股多周期技术分析、形态、支撑阻力与情景计划
+- 已脱敏的 AI、新闻与 SEC 证据快照
+- 本机持仓标记；不会写回服务器，也不会自动下单
 
-- QQQ 价格和日 K：Nasdaq.com 公开延时数据。
-- 事件：美联储、BLS、BEA、公司投资者关系页面等官方来源人工核验。
-- GitHub Actions 在工作日配置为约每15分钟重新生成并部署，定时触发属于平台尽力而为；页面会标记偏旧快照。
-- 未来四周事件是人工核验清单，自动构建只滚动展示窗口，不会自动发现或核验新事件。
-- 页面展示的是决策辅助，不是券商实时行情，不执行自动交易。
-- 数据更新失败时保留上一份真实快照，页面显示快照时间，不填充虚构金融数据。
+## 自动更新
 
-## 本地检查
+GitHub Actions 在美股工作日每 15 分钟生成一次公开快照，周末每日校验一次。只有测试、数据质量和发布物校验全部通过后才部署；失败时保留上一版网站。
 
-```powershell
-npm test
-npm run check
+公开快照不包含 API 密钥、账户、审计库、私有任务、原始模型响应或内部错误。公开行情可能延时或限流，所有静态快照均标记为不可直接执行，实际交易前必须用券商实时行情复核。
+
+## 本地验证
+
+```bash
+python -m unittest -v tests.test_public_release tests.test_public_snapshot tests.test_public_snapshot_quality
+node --test tests/public_adapter.test.mjs
+python tools/export_public_release.py .site --runtime .runtime --timeout-seconds 840
+python tools/validate_public_release.py .site/data
 ```
-
-静态网页位于 `public/`。GitHub Actions 会重新生成
-`public/data/dashboard.json`，通过新鲜度、历史行数、来源与结构闸门后再部署到
-GitHub Pages；刷新失败时保留上一份真实部署，不填入虚构行情。

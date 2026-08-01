@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07131c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>ANLI 今日交易打卡</title>
+  <link rel="stylesheet" href="/checkin.css?v=20260727-1">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">ANLI DISCIPLINE</p>
+        <h1>今日交易打卡</h1>
+        <p id="todayLabel" class="date-label"></p>
+      </div>
+      <a class="radar-link" href="/watchlist_v2.html">完整雷达</a>
+    </header>
+
+    <section class="score-card" aria-live="polite">
+      <div class="score-ring" id="scoreRing"><strong id="scoreValue">0</strong><span>/ 6</span></div>
+      <div class="score-copy">
+        <span id="statusPill" class="status-pill waiting">尚未完成</span>
+        <h2 id="statusTitle">先检查纪律，再看机会</h2>
+        <p id="statusHint">任何硬条件未通过，今天都不强行交易。</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div><span>01</span><h2>六项纪律</h2></div>
+        <button id="resetToday" class="text-button" type="button">重置今天</button>
+      </div>
+      <div id="disciplineList" class="discipline-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading"><div><span>02</span><h2>今天怎么做</h2></div></div>
+      <div class="action-grid" role="radiogroup" aria-label="今日行动">
+        <button class="action-button" type="button" data-action="观望">观望<small>没有满足条件</small></button>
+        <button class="action-button" type="button" data-action="准备">准备<small>等待触发价</small></button>
+        <button class="action-button" type="button" data-action="已执行">已执行<small>已按计划交易</small></button>
+        <button class="action-button" type="button" data-action="复盘">复盘<small>记录错误与改进</small></button>
+      </div>
+
+      <div class="trade-form">
+        <label>股票代码<input id="symbolInput" maxlength="8" placeholder="例如 NVDA"></label>
+        <label>方向<select id="directionInput"><option value="">未选择</option><option>做多</option><option>做空</option><option>不交易</option></select></label>
+        <label>单笔最大风险<input id="riskInput" inputmode="decimal" placeholder="例如 1%"></label>
+        <label class="full">一句话理由<textarea id="noteInput" rows="3" maxlength="180" placeholder="为什么进场，什么情况证明判断错误？"></textarea></label>
+      </div>
+    </section>
+
+    <button id="saveButton" class="save-button" type="button">保存今日打卡</button>
+    <p class="privacy-note">记录只保存在这台手机的浏览器中，不会自动下单，也不会上传账户信息。</p>
+
+    <section class="panel history-panel">
+      <div class="section-heading">
+        <div><span>03</span><h2>最近打卡</h2></div>
+        <button id="clearHistory" class="text-button danger" type="button">清空</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/checkin.js?v=20260727-1"></script>
+</body>
+</html>
