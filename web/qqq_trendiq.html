@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07110f">
+  <title>QQQ 决策雷达</title>
+  <link rel="stylesheet" href="/qqq_trendiq.css?v=20260731-unified2">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="brand-mark">A</span><span>ANLI</span><small>QQQ 决策雷达</small></a>
+    <nav><a href="/">观察池</a><button id="notifyBtn" class="quiet">开启提醒</button><button id="copilotToggle" class="iq-button">规则助手</button></nav>
+  </header>
+
+  <main>
+    <section class="hero panel">
+      <div class="quote"><div class="symbol-icon">Q</div><div><span>NASDAQ · QQQ</span><strong id="price">—</strong><em id="change">—</em></div></div>
+      <div class="decision"><span>当前结论</span><strong id="signalHeadline">正在计算规则条件…</strong><small id="freshness">正在读取数据</small></div>
+      <div class="completion"><span>条件完成度</span><b id="gradeScore">—</b><small id="grade">—</small></div>
+    </section>
+
+    <section id="dataGate" class="notice">正在核对行情时效与交易时段…</section>
+
+    <section class="workspace panel">
+      <div class="workspace-head">
+        <div><h1>QQQ 多周期技术结构</h1><p id="chartMeta">K线 · 成交量 · MACD · RSI · 支撑阻力</p></div>
+        <div class="timeframes" id="timeframes"></div>
+        <button id="refreshBtn" class="primary">重新分析</button>
+      </div>
+      <div class="chart-tools">
+        <div class="legend"><span class="up">上涨</span><span class="down">下跌</span><span class="ma20">MA20</span><span class="ma50">MA50</span></div>
+        <div class="navigation"><span>拖拽平移 · 滚轮缩放 · 双击回到最新</span><button id="zoomOut" title="缩小">−</button><button id="zoomIn" title="放大">＋</button><button id="latestBtn">最新</button></div>
+      </div>
+      <div id="chart" class="chart" tabindex="0"><p class="loading">正在构建图表…</p></div>
+      <div id="chartTooltip" class="chart-tooltip" hidden></div>
+      <div class="range-row"><span>较早</span><input id="rangeSlider" type="range" min="0" max="100" value="100" aria-label="K线可视区间"><span>最新</span><b id="rangeLabel">—</b></div>
+      <div class="layer-controls">
+        <button class="toggle active" data-layer="zones">支撑阻力</button>
+        <button class="toggle active" data-layer="trend">趋势线</button>
+        <button class="toggle active" data-layer="levels">计划价位</button>
+        <button class="toggle active" data-layer="averages">均线</button>
+        <button class="toggle active" data-layer="indicators">MACD / RSI</button>
+      </div>
+    </section>
+
+    <section id="signalBanner" class="signal-banner panel"><div><span>方向倾向</span><b id="stance">—</b></div><p id="nextCondition">—</p></section>
+
+    <section class="summary-grid">
+      <article class="panel"><div class="section-title"><div><h2>结构证据</h2><p>规则识别，不代表未来一定发生</p></div><span id="patternCount">—</span></div><div id="patternSummary" class="pattern-summary"></div></article>
+      <article class="panel"><div class="section-title"><div><h2>市场背景</h2><p>QQQ 位置、宽度和波动环境</p></div><span id="marketScore">—</span></div><div id="marketSummary" class="market-summary"></div></article>
+    </section>
+
+    <section class="panel plan-panel">
+      <div class="section-title"><div><h2>情景计划</h2><p>仅在规则触发后用于人工核对</p></div><span id="execution">—</span></div>
+      <div class="plan-grid"><article><span>计划入场</span><b id="entry">—</b></article><article class="stop"><span>失效 / 止损</span><b id="stop">—</b></article><article class="target"><span>目标</span><b id="target">—</b></article><article><span>单价风险</span><b id="riskPct">—</b></article><article><span>风险收益</span><b id="rrValue">2.0:1</b></article></div>
+      <div class="rr-control"><span>调整情景目标</span><input id="rrSlider" type="range" min="1.2" max="3" value="2" step="0.1"><small>只改变目标价，不会让系统信号自动变强</small></div>
+    </section>
+
+    <section class="logic-grid">
+      <article class="panel"><div class="section-title"><div><h2>为什么是这个结论</h2><p id="method">—</p></div></div><ol id="logic"></ol><div id="vetoes" class="vetoes"></div></article>
+      <article class="panel method-panel"><div class="section-title"><div><h2>指标口径</h2><p>已按标准公式和常规交易时段校正</p></div></div><div id="methodology"></div></article>
+    </section>
+
+    <section class="panel detail-panel"><details><summary>查看全部周期指标与同向趋势历史基准</summary><div id="detailContent"></div></details></section>
+    <p class="footer-note">技术分析是概率与风险管理工具，不是收益承诺，也不代替券商实时行情和你的最终决定。</p>
+  </main>
+
+  <aside id="copilot" class="copilot" aria-label="QQQ规则解释助手">
+    <div class="copilot-head"><div><span>ANLI</span><b>规则解释助手</b></div><button id="copilotClose" aria-label="关闭">×</button></div>
+    <div id="copilotState" class="copilot-state">等待分析结果…</div><div id="copilotAnswer" class="copilot-answer">我会解释结论、失效条件和下一触发条件。</div>
+    <div class="quick-questions"><button data-question="why">为什么？</button><button data-question="buy">现在能买？</button><button data-question="next">何时转强？</button><button data-question="risk">主要风险？</button></div>
+    <p class="disclaimer">规则解释，不自动下单，不保证收益。</p>
+  </aside>
+  <div id="toast" class="toast"></div>
+  <script src="/qqq_trendiq.js?v=20260731-unified2"></script>
+</body>
+</html>

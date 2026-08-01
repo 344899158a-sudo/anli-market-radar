@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "data": {
+    "max_quote_age_seconds": 300
+  },
+  "risk": {
+    "risk_per_trade_pct": "0.75",
+    "max_total_open_risk_pct": "4.0",
+    "max_position_market_value_pct": "10.0",
+    "max_positions": 5,
+    "max_same_theme_exposure_pct": "25.0",
+    "daily_drawdown_freeze_pct": "2.0",
+    "weekly_drawdown_freeze_pct": "4.0",
+    "monthly_drawdown_freeze_pct": "7.0",
+    "consecutive_loss_freeze_count": 3
+  },
+  "market_multipliers": {
+    "UPTREND": "1.0",
+    "RANGE": "0.7",
+    "PANIC_REVERSAL": "0.35",
+    "DOWNTREND": "0.0",
+    "UNKNOWN": "0.0"
+  },
+  "option": {
+    "normal_long_call_min_dte": 60,
+    "dte_info": 30,
+    "dte_action": 21,
+    "dte_urgent": 14,
+    "dte_exit": 7,
+    "max_bid_ask_spread_pct": "15.0"
+  },
+  "profit_protection": {
+    "single_day_return_pct": "5.0",
+    "single_day_reduce_fraction": "0.3333",
+    "two_day_return_pct": "8.0",
+    "two_day_reduce_fraction": "0.50"
+  },
+  "cooling": {
+    "external_recommendation_hours": 48
+  },
+  "score_mapping": {
+    "watch_below": 55,
+    "ready_below": 70,
+    "probe_below": 80
+  }
+}
