@@ -47,6 +47,7 @@ jobs:
         run: >-
           python -m unittest -v
           tests.test_advanced_technical
+          tests.test_calendar_fallback
           tests.test_event_calendar
           tests.test_history_cache
           tests.test_public_market_ohlcv
@@ -64,11 +65,22 @@ jobs:
           node --test tests/public_adapter.test.mjs
 
       - name: 生成并验证真实公开快照
+        id: live_release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        continue-on-error: true
         run: >-
           python tools/export_public_release.py .site
           --runtime .runtime
           --timeout-seconds 840
+
+      - name: 实时快照失败时仅更新已核验事件日历
+        if: >-
+          github.ref == 'refs/heads/main' &&
+          github.event_name != 'pull_request' &&
+          steps.live_release.outcome == 'failure'
+        run: >-
+          python tools/export_calendar_fallback.py .site
+          --base-url https://344899158a-sudo.github.io/anli-market-radar/
 
       - name: 再次核对发布物
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
