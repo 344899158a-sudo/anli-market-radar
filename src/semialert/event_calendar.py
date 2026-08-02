@@ -77,14 +77,21 @@ def _risk_label(score: int) -> str:
     return "很高" if score >= 4 else "高" if score == 3 else "中" if score == 2 else "低"
 
 
+def _next_or_same_monday(value: date) -> date:
+    """Return the start of the next complete Monday-Sunday week."""
+    return value + timedelta(days=(-value.weekday()) % 7)
+
+
 def build_event_calendar(today: date | None = None) -> dict[str, Any]:
     today = today or datetime.now(ET).date()
+    first_week_start = _next_or_same_monday(today)
     now = datetime.now(timezone.utc)
     verified = datetime.fromisoformat(VERIFIED_AT).astimezone(timezone.utc)
     age_hours = max(0, (now - verified).total_seconds() / 3600)
     weeks = []
     for index in range(4):
-        start, end = today + timedelta(days=index * 7), today + timedelta(days=index * 7 + 6)
+        start = first_week_start + timedelta(days=index * 7)
+        end = start + timedelta(days=6)
         events = []
         for raw in EVENTS:
             event_time = datetime.fromisoformat(raw["at"])
@@ -104,7 +111,7 @@ def build_event_calendar(today: date | None = None) -> dict[str, Any]:
         )
         weeks.append({
             "index": index + 1, "start": start.isoformat(), "end": end.isoformat(),
-            "label": "本周" if index == 0 else f"第{index + 1}周",
+            "label": ("本周" if start == today else "下周") if index == 0 else f"第{index + 1}周",
             "risk_score": score, "risk_label": _risk_label(score),
             "event_count": len(events), "critical_count": critical_count,
             "action": action, "events": events,
@@ -115,5 +122,5 @@ def build_event_calendar(today: date | None = None) -> dict[str, Any]:
         "verification_status": "已核验" if age_hours <= 48 else "需要重新核验",
         "timezone_note": "页面同时显示美东时间与北京时间；交易决策以美东交易日为准。",
         "weeks": weeks, "event_count": sum(len(week["events"]) for week in weeks),
-        "methodology": "宏观日期取自美联储、BLS、BEA官方日历；财报优先取公司投资者关系页面；无法核验的日期不显示。",
+        "methodology": "每周固定为周一至周日；宏观日期取自美联储、BLS、BEA官方日历；财报优先取公司投资者关系页面；无法核验的日期不显示。",
     }

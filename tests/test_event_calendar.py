@@ -10,6 +10,19 @@ from semialert.event_calendar import build_event_calendar
 
 
 class EventCalendarTests(unittest.TestCase):
+    def test_uses_complete_monday_to_sunday_weeks(self):
+        sunday_result = build_event_calendar(date(2026, 8, 2))
+        self.assertEqual(sunday_result["weeks"][0]["start"], "2026-08-03")
+        self.assertEqual(sunday_result["weeks"][0]["end"], "2026-08-09")
+        self.assertEqual(sunday_result["weeks"][0]["label"], "下周")
+        self.assertEqual(sunday_result["weeks"][1]["start"], "2026-08-10")
+        self.assertEqual(sunday_result["weeks"][1]["end"], "2026-08-16")
+
+        monday_result = build_event_calendar(date(2026, 8, 3))
+        self.assertEqual(monday_result["weeks"][0]["start"], "2026-08-03")
+        self.assertEqual(monday_result["weeks"][0]["end"], "2026-08-09")
+        self.assertEqual(monday_result["weeks"][0]["label"], "本周")
+
     def test_builds_four_weeks_from_traceable_sources(self):
         result = build_event_calendar(date(2026, 7, 27))
         self.assertEqual(len(result["weeks"]), 4)

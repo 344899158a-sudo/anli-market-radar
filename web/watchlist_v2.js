@@ -611,13 +611,13 @@ function renderJointConclusion() {
   const highEventRisk = Number(firstWeek.risk_score || 0) >= 4;
   root.className = `market-joint-action ${highPosition && highEventRisk ? 'danger' : highEventRisk ? 'caution' : 'normal'}`;
   if (highPosition && highEventRisk) {
-    root.innerHTML = `<strong>高位事件前区</strong><p>QQQ位于${esc(marketOverviewData.position_label)}，且本周为${esc(firstWeek.risk_label)}风险周。已有盈利仓优先考虑减仓 1/3–1/2；不新增同方向高波动仓位，事件结果确认后再评估。</p>`;
+    root.innerHTML = `<strong>高位事件前区</strong><p>QQQ位于${esc(marketOverviewData.position_label)}，且${esc(firstWeek.label || '首周')}为${esc(firstWeek.risk_label)}风险周。已有盈利仓优先考虑减仓 1/3–1/2；不新增同方向高波动仓位，事件结果确认后再评估。</p>`;
   } else if (highEventRisk) {
-    root.innerHTML = `<strong>重大事件周</strong><p>当前位置为${esc(marketOverviewData.position_label)}，本周事件风险${esc(firstWeek.risk_label)}。新开仓缩小，避免在事件前追涨；已有盈利仓提高保护线。</p>`;
+    root.innerHTML = `<strong>重大事件周</strong><p>当前位置为${esc(marketOverviewData.position_label)}，${esc(firstWeek.label || '首周')}事件风险${esc(firstWeek.risk_label)}。新开仓缩小，避免在事件前追涨；已有盈利仓提高保护线。</p>`;
   } else if (highPosition) {
     root.innerHTML = `<strong>高位利润保护</strong><p>未来一周事件压力暂不极端，但QQQ已在${esc(marketOverviewData.position_label)}。停止追涨，盈利仓按计划分批兑现。</p>`;
   } else {
-    root.innerHTML = `<strong>按趋势执行</strong><p>当前位置为${esc(marketOverviewData.position_label)}，本周事件风险${esc(firstWeek.risk_label || '待确认')}。可按规则寻找回踩机会，但不取消止损与仓位上限。</p>`;
+    root.innerHTML = `<strong>按趋势执行</strong><p>当前位置为${esc(marketOverviewData.position_label)}，${esc(firstWeek.label || '首周')}事件风险${esc(firstWeek.risk_label || '待确认')}。可按规则寻找回踩机会，但不取消止损与仓位上限。</p>`;
   }
 }
 
@@ -676,7 +676,7 @@ function renderEventCalendar(data) {
       const et = new Date(event.at_et);
       const cn = new Date(event.at_cn);
       return `<div class="calendar-event importance-${event.importance}"><time>${et.toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'})} 美东 ${et.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',timeZone:'America/New_York'})}<small>北京时间 ${cn.toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small></time><div><span>${esc(event.category)} · ${esc(event.verification)}</span><b>${esc(event.title)}</b><p>${esc(event.note)}</p><small>影响：${esc((event.scope || []).join('、'))}</small></div><a href="${esc(event.source_url)}" target="_blank" rel="noopener noreferrer">核对来源</a></div>`;
-    }).join('') || '<p class="empty">本周暂无已核验的重大事件。</p>'}</div>
+    }).join('') || '<p class="empty">该周暂无已核验的重大事件。</p>'}</div>
   </article>`).join('');
   $('eventMethodology').textContent = `${data.methodology} ${data.timezone_note} 核验超过48小时会显示“需要重新核验”，此时不应仅凭日历执行交易。`;
   renderJointConclusion();
