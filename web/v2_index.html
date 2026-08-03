@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#080b10">
+  <title>ANLI 2.0 · Expectation Engine</title>
+  <link rel="stylesheet" href="./styles.css?v=2.1.0">
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#decision" aria-label="ANLI 2.0 首页">
+      <span class="brand-mark">A</span>
+      <span>
+        <strong>ANLI 2.0</strong>
+        <small>EXPECTATION ENGINE</small>
+      </span>
+    </a>
+    <nav class="desktop-nav" aria-label="主导航">
+      <button class="nav-button active" data-view="decision">今日决策</button>
+      <button class="nav-button" data-view="playbooks">剧本雷达</button>
+      <button class="nav-button" data-view="events">事件与预期</button>
+      <button class="nav-button" data-view="universe">全部个股</button>
+    </nav>
+    <div class="top-actions">
+      <button class="icon-button" id="refreshButton" aria-label="刷新数据" title="刷新数据">↻</button>
+      <div class="source-pill" id="sourcePill"><i></i><span>连接数据</span></div>
+    </div>
+  </header>
+
+  <main class="shell" id="app" aria-live="polite">
+    <section class="loading-screen">
+      <div class="loader-ring"></div>
+      <strong>正在建立 2.0 决策快照</strong>
+      <span>核对市场闸门、事件阶段与交易剧本</span>
+    </section>
+  </main>
+
+  <nav class="mobile-nav" aria-label="手机主导航">
+    <button class="mobile-nav-button active" data-view="decision"><span>⌁</span>决策</button>
+    <button class="mobile-nav-button" data-view="playbooks"><span>◈</span>剧本</button>
+    <button class="mobile-nav-button" data-view="events"><span>◷</span>事件</button>
+    <button class="mobile-nav-button" data-view="universe"><span>⌕</span>个股</button>
+  </nav>
+
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+  <aside class="detail-drawer" id="detailDrawer" aria-hidden="true" aria-label="详细分析">
+    <div class="drawer-header">
+      <div id="drawerEyebrow" class="eyebrow">ANLI 2.0 DETAIL</div>
+      <button class="drawer-close" id="drawerClose" aria-label="关闭详情">×</button>
+    </div>
+    <div class="drawer-content" id="drawerContent"></div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+  <script src="./app.js?v=2.1.0"></script>
+</body>
+</html>
+

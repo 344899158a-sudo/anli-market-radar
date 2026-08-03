@@ -5,10 +5,11 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 
-VERIFIED_AT = "2026-08-03T17:50:26+08:00"
+VERIFIED_AT = "2026-08-03T17:55:00+08:00"
 ET = ZoneInfo("America/New_York")
 
 FED = ("Federal Reserve", "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm", "官方日历确认")
+FED_CALENDAR = ("Federal Reserve", "https://www.federalreserve.gov/newsevents/2026-august.htm", "官方日历确认")
 BLS = ("U.S. Bureau of Labor Statistics", "https://www.bls.gov/schedule/2026/home.htm", "官方日历确认")
 BEA = ("U.S. Bureau of Economic Analysis", "https://www.bea.gov/news/schedule/full", "官方日历确认")
 
@@ -49,6 +50,10 @@ EVENTS = (
            "盘后；关注AWS、AI资本开支与零售利润率。", ["AMZN", "QQQ", "AI云"]),
     _event("eci-q2", "2026-07-31T08:30:00-04:00", "宏观", "美国 Q2 就业成本指数（ECI）", 3, BLS,
            "工资通胀的重要观察点。", ["全市场"]),
+    _event("sloos-q2", "2026-08-03T14:00:00-04:00", "宏观", "美联储银行放贷标准调查（SLOOS）", 3, FED_CALENDAR,
+           "信贷标准与贷款需求可影响增长、降息和风险偏好预期。", ["全市场", "银行"]),
+    _event("trade-jun", "2026-08-04T08:30:00-04:00", "宏观", "美国 6月国际贸易数据", 3, BEA,
+           "净出口与进口结构会影响增长预期及第二季度GDP修正。", ["全市场"]),
     _event("jolts-jun", "2026-08-04T10:00:00-04:00", "宏观", "美国 JOLTS 职位空缺", 3, BLS,
            "劳动需求与降息预期的前置指标。", ["全市场"]),
     _event("amd-q2", "2026-08-04T17:00:00-04:00", "财报", "AMD Q2 财报", 4,
@@ -62,6 +67,8 @@ EVENTS = (
            "通胀核心事件，盘前波动风险高。", ["全市场"]),
     _event("ppi-jul", "2026-08-13T08:30:00-04:00", "宏观", "美国 7月 PPI", 3, BLS,
            "与CPI连续发布，注意二次定价。", ["全市场"]),
+    _event("industrial-production-jul", "2026-08-18T09:15:00-04:00", "宏观", "美国 7月工业产出与产能利用率", 3, FED_CALENDAR,
+           "制造业与周期需求信号，关注利率和半导体景气预期的联动。", ["全市场", "半导体"]),
     _event("import-prices", "2026-08-18T08:30:00-04:00", "宏观", "美国 7月进出口价格", 2, BLS,
            "补充观察输入型通胀。", ["全市场"]),
     _event("fomc-minutes", "2026-08-19T14:00:00-04:00", "宏观", "7月 FOMC 会议纪要", 3,
@@ -70,6 +77,8 @@ EVENTS = (
     _event("opex-aug", "2026-08-21T16:00:00-04:00", "衍生品", "美股月度期权到期（OPEX）", 3,
            ("标准月度到期规则", "https://www.cboe.com/tradable_products/equity_indices_leaps_options/specifications/", "规则推导，非实时公告"),
            "第三个星期五；关注临近收盘的对冲与再平衡波动。", ["全市场"]),
+    _event("gdp2-pce-jul", "2026-08-26T08:30:00-04:00", "宏观", "美国 Q2 GDP 二次估计 + 7月PCE", 4, BEA,
+           "增长修正与核心通胀同日发布，可能重定价利率路径与科技股估值。", ["全市场", "QQQ"]),
 )
 
 
@@ -82,10 +91,15 @@ def _next_or_same_monday(value: date) -> date:
     return value + timedelta(days=(-value.weekday()) % 7)
 
 
-def build_event_calendar(today: date | None = None) -> dict[str, Any]:
-    today = today or datetime.now(ET).date()
+def build_event_calendar(
+    today: date | None = None,
+    *,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    generated_at = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    today = today or generated_at.astimezone(ET).date()
     first_week_start = _next_or_same_monday(today)
-    now = datetime.now(timezone.utc)
+    now = generated_at
     verified = datetime.fromisoformat(VERIFIED_AT).astimezone(timezone.utc)
     age_hours = max(0, (now - verified).total_seconds() / 3600)
     weeks = []

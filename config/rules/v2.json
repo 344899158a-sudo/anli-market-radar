@@ -1,0 +1,119 @@
+{
+  "version": "2.1.0",
+  "data": {
+    "public_base_url": "https://344899158a-sudo.github.io/anli-market-radar/data/",
+    "manifest_ttl_seconds": 300,
+    "network_timeout_seconds": 20,
+    "max_regular_age_hours": "36",
+    "max_weekend_age_hours": "96",
+    "required_modules": [
+      "market-overview",
+      "opportunities",
+      "event-calendar",
+      "sector-pulse",
+      "qqq-analysis",
+      "watchlist"
+    ]
+  },
+  "market_gate": {
+    "regime_exposure_cap_pct": {
+      "UPTREND": "70",
+      "ROTATION": "40",
+      "RANGE": "35",
+      "PANIC_REVERSAL": "20",
+      "DOWNTREND": "0",
+      "UNKNOWN": "0"
+    },
+    "risk_on_breadth_ma50_pct": "55",
+    "selective_breadth_ma50_pct": "45",
+    "risk_off_breadth_ma50_pct": "20",
+    "rate_pressure_day_change_pct": "1.0"
+  },
+  "event_lifecycle": {
+    "discovery_max_days": 45,
+    "expectation_build_min_days": 7,
+    "expectation_build_max_days": 30,
+    "pre_event_risk_days": 5,
+    "post_discovery_days": 3,
+    "post_trend_days": 20
+  },
+  "playbooks": {
+    "LEADERSHIP_PULLBACK": {
+      "label": "强势龙头回踩",
+      "radar": {
+        "thesis": "只交易仍被资金认可的龙头，利用趋势中的正常回撤取得更好的赔率。",
+        "market_fit": "风险可开或选择性交易；行业ETF与个股都不能处于明确下降趋势。",
+        "setup": "公司质地通过、行业趋势确认、股价位于MA50上方，回撤进入可控区间且动量不过热。",
+        "trigger": "缩量回踩后放量收复20EMA、前一日高点或结构锚定VWAP。",
+        "avoid": "放量跌破结构低点、行业相对强度转弱，或高开急拉后追价。",
+        "exit": "2R保护利润；随后沿10EMA、事件VWAP或前一日低点移动止盈；3–5日无延续退出。"
+      },
+      "drawdown_min_pct": "-10",
+      "drawdown_max_pct": "-1.5",
+      "max_rsi14": "72",
+      "confirm_volume_ratio": "1.10"
+    },
+    "EXPECTATION_BUILD": {
+      "label": "买预期",
+      "radar": {
+        "thesis": "交易事实公布前的预期上修与定价差，不把已被市场充分定价的故事当作机会。",
+        "market_fit": "大盘和行业至少保持选择性可交易，事件日期必须由官方来源确认。",
+        "setup": "事件前7–30天、趋势在MA50上方、不过度延伸、不追涨，并核验盈利预期修订与期权定价。",
+        "trigger": "预期持续上修后完成箱体突破，或回踩关键位后放量收复。",
+        "avoid": "预期下修、期权隐含波动过度昂贵、事件前涨幅已透支，或进入事件前5天仍无利润垫。",
+        "exit": "达到隐含涨跌幅或2R先减仓；事件前不保留满仓；事实不超已定价预期时卖事实。"
+      },
+      "min_event_days": 7,
+      "max_event_days": 30,
+      "max_distance_ma50_pct": "12",
+      "max_rsi14": "75"
+    },
+    "POST_EVENT_CONFIRMATION": {
+      "label": "财报后确认",
+      "radar": {
+        "thesis": "事实公布后不猜开盘方向，只在基本面超预期与价格承接同时确认时参与。",
+        "market_fit": "允许事件驱动的相对强度交易，但大盘风险关闭时仍由市场闸门否决。",
+        "setup": "实际值、指引与核心KPI超过已定价预期，且相对成交量显示机构参与。",
+        "trigger": "开盘15–60分钟后守住开盘区间与事件VWAP，并超过事件前隐含涨跌幅的质量门槛。",
+        "avoid": "只有EPS标题好看、指引下修、跳空冲高回落，或跌破事件VWAP。",
+        "exit": "跳空过大先保护利润；Beat+Raise且承接有效时保留趋势仓；2–3日无跟随退出。"
+      },
+      "max_post_event_days": 3,
+      "min_relative_volume": "1.50"
+    },
+    "WASHOUT_RECOVERY": {
+      "label": "超跌修复",
+      "radar": {
+        "thesis": "急跌只代表风险释放，不代表价值出现；先核验原因，再等待价格证明抛压衰竭。",
+        "market_fit": "可在选择性或恐慌修复环境观察，但系统性下跌中不机械抄底。",
+        "setup": "跌幅达到风险释放阈值、基本面逻辑未被证伪，行业停止创新低。",
+        "trigger": "至少等待2–3个完整交易日，形成更高低点并收复事件VWAP或20EMA。",
+        "avoid": "下跌原因未核验、继续创新低、行业同步恶化，或仅因价格更低而摊平。",
+        "exit": "首个供给区保护利润；跌破恐慌低点立即失效；5日无延续执行时间止损。"
+      },
+      "max_day_change_pct": "-5",
+      "max_drawdown20_pct": "-12",
+      "stabilization_sessions": 3
+    },
+    "NO_TRADE": {
+      "label": "无有效剧本",
+      "radar": {
+        "thesis": "现金也是仓位；没有明确优势时不把模糊信号包装成机会。",
+        "market_fit": "适用于任意证据不足、规则冲突或价格结构不清晰的环境。",
+        "setup": "没有同时满足任一高质量剧本的必要条件。",
+        "trigger": "等待股票进入一套可识别剧本，再从第一道证据闸门重新评估。",
+        "avoid": "为了保持活跃而跨剧本拼接理由。",
+        "exit": "不建立仓位，因此没有退出管理。"
+      }
+    }
+  },
+  "risk": {
+    "research_risk_per_trade_pct": "0.50",
+    "max_total_open_risk_pct": "3.00",
+    "max_position_market_value_pct": "10.00",
+    "max_positions": 5,
+    "pre_event_position_fraction": "0.50",
+    "sell_fact_trim_fraction": "0.50"
+  }
+}
+

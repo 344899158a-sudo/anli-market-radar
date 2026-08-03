@@ -53,8 +53,11 @@ class CalendarFallbackTests(unittest.TestCase):
                 root / "site",
                 base_url="https://example.test/",
                 fetcher=fetcher,
-                calendar_builder=lambda: build_event_calendar(date(2026, 8, 2)),
-                now=lambda: datetime(2026, 8, 2, 13, 30, tzinfo=timezone.utc),
+                calendar_builder=lambda: build_event_calendar(
+                    date(2026, 8, 3),
+                    now=datetime(2026, 8, 3, 10, 30, tzinfo=timezone.utc),
+                ),
+                now=lambda: datetime(2026, 8, 3, 10, 30, tzinfo=timezone.utc),
             )
             validated = validate_public_release(root / "site" / "data")
             self.assertEqual(validated["snapshot_id"], result["snapshot_id"])
@@ -108,7 +111,7 @@ class CalendarFallbackTests(unittest.TestCase):
                     base_url="https://example.test/",
                     fetcher=lambda url: mapping[url],
                     calendar_builder=lambda: stale_calendar,
-                    now=lambda: datetime(2026, 8, 2, 13, 30, tzinfo=timezone.utc),
+                    now=lambda: datetime(2026, 8, 3, 10, 30, tzinfo=timezone.utc),
                 )
 
     def test_rejects_tampered_published_base(self) -> None:
@@ -122,7 +125,7 @@ class CalendarFallbackTests(unittest.TestCase):
                     root / "site",
                     base_url="https://example.test/",
                     fetcher=lambda url: mapping[url],
-                    now=lambda: datetime(2026, 8, 2, 13, 30, tzinfo=timezone.utc),
+                    now=lambda: datetime(2026, 8, 3, 10, 30, tzinfo=timezone.utc),
                 )
 
     def test_workflow_uses_fallback_without_disabling_final_validation(self) -> None:

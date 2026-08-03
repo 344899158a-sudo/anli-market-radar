@@ -1,6 +1,6 @@
 import sys
 import unittest
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +32,18 @@ class EventCalendarTests(unittest.TestCase):
             for event in week["events"]:
                 self.assertTrue(event["source_url"].startswith("https://"))
                 self.assertTrue(event["verification"])
+
+    def test_verification_clock_is_deterministic(self):
+        fresh = build_event_calendar(
+            date(2026, 8, 3),
+            now=datetime(2026, 8, 3, 10, 30, tzinfo=timezone.utc),
+        )
+        stale = build_event_calendar(
+            date(2026, 8, 5),
+            now=datetime(2026, 8, 5, 10, 30, tzinfo=timezone.utc),
+        )
+        self.assertEqual(fresh["verification_status"], "已核验")
+        self.assertEqual(stale["verification_status"], "需要重新核验")
 
     def test_excludes_events_outside_window(self):
         result = build_event_calendar(date(2026, 8, 24))
