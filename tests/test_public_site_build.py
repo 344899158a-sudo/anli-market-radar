@@ -20,7 +20,6 @@ class PublicSiteBuildTests(unittest.TestCase):
             output = MODULE.build_public_site(directory)
             index = (output / "index.html").read_text(encoding="utf-8")
             qqq = (output / "qqq_trendiq.html").read_text(encoding="utf-8")
-            checkin = (output / "checkin.html").read_text(encoding="utf-8")
 
             self.assertIn("原则驱动实时机会雷达", index)
             self.assertIn('href="./watchlist_v2.css', index)
@@ -33,11 +32,22 @@ class PublicSiteBuildTests(unittest.TestCase):
                 qqq.index("./public_adapter.js"),
                 qqq.index("./qqq_trendiq.js"),
             )
-            self.assertIn('src="./checkin.js', checkin)
+            self.assertNotIn('id="decisionCenter"', index)
+            self.assertNotIn('href="#decisionCenter"', index)
+            self.assertNotIn("今日纪律行动", index)
+            self.assertNotIn("checkin.html", index)
+            self.assertNotIn("decision_center.css", index)
+            self.assertNotIn("decision_center.js", index)
             self.assertNotRegex(
-                "\n".join((index, qqq, checkin)),
+                "\n".join((index, qqq)),
                 r'(?:href|src|data-detail-href)="/',
             )
+
+            desktop = (ROOT / "web" / "watchlist_v2.html").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("今日纪律行动", desktop)
+            self.assertIn('/checkin.html', desktop)
 
     def test_build_copies_only_explicit_public_assets(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -53,8 +63,16 @@ class PublicSiteBuildTests(unittest.TestCase):
                     *MODULE.PUBLIC_ASSETS,
                     "index.html",
                     "qqq_trendiq.html",
-                    "checkin.html",
                 },
+            )
+            self.assertTrue(
+                {
+                    "decision_center.css",
+                    "decision_center.js",
+                    "checkin.css",
+                    "checkin.js",
+                    "checkin.html",
+                }.isdisjoint(names)
             )
             self.assertFalse((output / "config_watchlist.json").exists())
             self.assertFalse((output / "watchlist_state.db").exists())
