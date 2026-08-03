@@ -5,7 +5,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 
-VERIFIED_AT = "2026-08-01T12:39:00+08:00"
+VERIFIED_AT = "2026-08-03T17:50:26+08:00"
 ET = ZoneInfo("America/New_York")
 
 FED = ("Federal Reserve", "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm", "官方日历确认")
