@@ -74,13 +74,26 @@ jobs:
           --timeout-seconds 840
 
       - name: 实时快照失败时仅更新已核验事件日历
+        id: calendar_fallback
         if: >-
           github.ref == 'refs/heads/main' &&
           github.event_name != 'pull_request' &&
           steps.live_release.outcome == 'failure'
+        continue-on-error: true
         run: >-
           python tools/export_calendar_fallback.py .site
           --base-url https://344899158a-sudo.github.io/anli-market-radar/
+
+      - name: 统一版线上基线缺失时恢复已验证启动快照
+        if: >-
+          github.ref == 'refs/heads/main' &&
+          github.event_name != 'pull_request' &&
+          steps.live_release.outcome == 'failure' &&
+          steps.calendar_fallback.outcome == 'failure'
+        run: >-
+          python -c "import shutil,zipfile;
+          shutil.rmtree('.site',ignore_errors=True);
+          zipfile.ZipFile('.github/bootstrap/public-release.zip').extractall('.site')"
 
       - name: 再次核对发布物
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

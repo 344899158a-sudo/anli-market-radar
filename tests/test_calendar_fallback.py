@@ -135,6 +135,9 @@ class CalendarFallbackTests(unittest.TestCase):
         self.assertIn("id: live_release", workflow)
         self.assertIn("continue-on-error: true", workflow)
         self.assertIn("steps.live_release.outcome == 'failure'", workflow)
+        self.assertIn("id: calendar_fallback", workflow)
+        self.assertIn("steps.calendar_fallback.outcome == 'failure'", workflow)
+        self.assertIn(".github/bootstrap/public-release.zip", workflow)
         self.assertIn("python tools/export_calendar_fallback.py .site", workflow)
         self.assertIn("python tools/validate_public_release.py .site/data", workflow)
 
