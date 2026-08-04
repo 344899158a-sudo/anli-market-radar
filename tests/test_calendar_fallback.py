@@ -141,6 +141,21 @@ class CalendarFallbackTests(unittest.TestCase):
         self.assertIn("python tools/export_calendar_fallback.py .site", workflow)
         self.assertIn("python tools/validate_public_release.py .site/data", workflow)
 
+    def test_watchdog_retriggers_stale_market_release(self) -> None:
+        watchdog = (ROOT / ".github" / "workflows" / "market-refresh-watchdog.yml").read_text(
+            encoding="utf-8"
+        )
+        deploy = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('cron: "3,18,33,48 * * * 1-5"', watchdog)
+        self.assertIn("actions: write", watchdog)
+        self.assertIn('manifest["modules"]["market-overview"]', watchdog)
+        self.assertIn('snapshot_session != "REGULAR"', watchdog)
+        self.assertIn("steps.freshness.outcome == 'failure'", watchdog)
+        self.assertIn("gh workflow run deploy-pages.yml --ref main", watchdog)
+        self.assertIn("repository_dispatch:", deploy)
+
 
 if __name__ == "__main__":
     unittest.main()

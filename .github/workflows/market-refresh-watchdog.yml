@@ -1,0 +1,51 @@
+name: Market refresh watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "3,18,33,48 * * * 1-5"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  check-and-recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check public snapshot freshness
+        id: freshness
+        continue-on-error: true
+        shell: python
+        run: |
+          import datetime as dt
+          import json
+          import urllib.request
+          from zoneinfo import ZoneInfo
+          url = "https://344899158a-sudo.github.io/anli-market-radar/data/manifest.json"
+          with urllib.request.urlopen(f"{url}?t={dt.datetime.now().timestamp()}", timeout=20) as response:
+              manifest = json.load(response)
+          entry = manifest["modules"]["market-overview"]
+          data_url = "https://344899158a-sudo.github.io/anli-market-radar/data/" + entry["path"]
+          with urllib.request.urlopen(data_url, timeout=20) as response:
+              overview = json.load(response)
+          market_time = overview.get("as_of") or overview.get("data", {}).get("as_of") or manifest["generated_at"]
+          observed = dt.datetime.fromisoformat(market_time.replace("Z", "+00:00"))
+          now = dt.datetime.now(dt.timezone.utc)
+          ny = now.astimezone(ZoneInfo("America/New_York"))
+          minute = ny.hour * 60 + ny.minute
+          active = ny.weekday() < 5 and 4 * 60 <= minute < 20 * 60
+          max_age = dt.timedelta(minutes=35 if 9 * 60 + 30 <= minute < 16 * 60 else 75)
+          age = now - observed
+          snapshot_session = manifest.get("source", {}).get("session")
+          regular = 9 * 60 + 30 <= minute < 16 * 60
+          session_mismatch = active and regular and snapshot_session != "REGULAR"
+          print(f"snapshot={manifest['snapshot_id']} age={age} active={active} session={snapshot_session}")
+          if active and (age > max_age or session_mismatch):
+              raise SystemExit("public market snapshot is stale")
+      - name: Dispatch full refresh when stale or unreachable
+        if: steps.freshness.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --ref main

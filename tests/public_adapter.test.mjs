@@ -10,6 +10,9 @@ test("public adapter refreshes manifests and exposes evidence entry points", asy
   Date.now = () => clock;
   let version = "one";
   let manifestRequests = 0;
+  let generatedAt = "2026-07-31T14:02:00+00:00";
+  let overviewAsOf = "2026-07-31T14:00:00+00:00";
+  let sourceSession = "REGULAR";
   const storage = new Map();
   globalThis.localStorage = {
     getItem: key => storage.get(key) ?? null,
@@ -20,9 +23,9 @@ test("public adapter refreshes manifests and exposes evidence entry points", asy
     schema_version: "1.0.0",
     snapshot_id: snapshotId,
     rule_version: "1.0.0",
-    generated_at: "2026-07-31T14:02:00+00:00",
-    as_of: "2026-07-31T14:00:00+00:00",
-    source: { provider: `provider-${snapshotId}`, session: "REGULAR" },
+    generated_at: generatedAt,
+    as_of: overviewAsOf,
+    source: { provider: `provider-${snapshotId}`, session: sourceSession },
     quality: { status: "OK", missing: [], errors: [] },
     modules: {
       "market-overview": { path: `snapshots/${snapshotId}/market-overview.json` },
@@ -41,7 +44,10 @@ test("public adapter refreshes manifests and exposes evidence entry points", asy
       return new Response(JSON.stringify(manifest(version)));
     }
     if (url.pathname.endsWith("/market-overview.json")) {
-      return new Response(JSON.stringify(envelope({ provider: `overview-${version}` })));
+      return new Response(JSON.stringify({
+        ...envelope({ provider: `overview-${version}` }),
+        as_of: overviewAsOf,
+      }));
     }
     if (url.pathname.endsWith("/watchlist.json")) {
       return new Response(JSON.stringify(envelope({
@@ -113,6 +119,39 @@ test("public adapter refreshes manifests and exposes evidence entry points", asy
     assert.equal(evidence.news_items.length, 1);
     assert.equal(evidence.sources.length, 2);
     assert.equal(evidence.analysis, undefined);
+
+    clock = Date.parse("2026-08-04T14:00:00Z");
+    generatedAt = "2026-08-04T13:58:00Z";
+    overviewAsOf = "2026-08-04T13:58:00Z";
+    sourceSession = "PREMARKET";
+    version = "three";
+    const changedRefresh = await (
+      await window.fetch("/api/refresh", { method: "POST" })
+    ).json();
+    assert.equal(changedRefresh.refreshed, true);
+    const staleAtOpen = await (await window.fetch("/api/status")).json();
+    assert.equal(staleAtOpen.market_session, "REGULAR");
+    assert.equal(staleAtOpen.snapshot_session, "PREMARKET");
+    assert.equal(staleAtOpen.market_data_stale, true);
+    assert.equal(staleAtOpen.quote_is_fresh, false);
+    assert.match(staleAtOpen.last_error, /\u5df2\u5f00\u76d8/);
+
+    sourceSession = "REGULAR";
+    version = "four";
+    const freshRefresh = await (
+      await window.fetch("/api/refresh", { method: "POST" })
+    ).json();
+    assert.equal(freshRefresh.refreshed, true);
+    const freshRegular = await (await window.fetch("/api/status")).json();
+    assert.equal(freshRegular.market_data_stale, false);
+    assert.equal(freshRegular.quote_is_fresh, true);
+    assert.equal(freshRegular.quote_age_seconds, 120);
+
+    const unchangedRefresh = await (
+      await window.fetch("/api/refresh", { method: "POST" })
+    ).json();
+    assert.equal(unchangedRefresh.refreshed, false);
+    assert.equal(unchangedRefresh.accepted, false);
   } finally {
     Date.now = originalNow;
     delete globalThis.window;

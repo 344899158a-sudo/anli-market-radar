@@ -112,6 +112,54 @@
     }[session] || "快照";
   }
 
+  function currentNewYorkSession(nowMs = Date.now()) {
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/New_York",
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      }).formatToParts(new Date(nowMs)).map(part => [part.type, part.value]),
+    );
+    if (["Sat", "Sun"].includes(parts.weekday)) return "CLOSED";
+    const minuteOfDay = Number(parts.hour) * 60 + Number(parts.minute);
+    if (minuteOfDay >= 9 * 60 + 30 && minuteOfDay < 16 * 60) return "REGULAR";
+    if (minuteOfDay >= 4 * 60 && minuteOfDay < 9 * 60 + 30) return "PREMARKET";
+    if (minuteOfDay >= 16 * 60 && minuteOfDay < 20 * 60) return "AFTERHOURS";
+    return "CLOSED";
+  }
+
+  function snapshotFreshness(manifest, overviewEnvelope) {
+    const snapshotSession = manifest.source?.session || "CLOSED";
+    const expectedSession = currentNewYorkSession();
+    const marketDataTime = overviewEnvelope?.as_of
+      || overviewEnvelope?.data?.as_of
+      || manifest.generated_at;
+    const timestamp = Date.parse(marketDataTime);
+    const ageSeconds = Number.isFinite(timestamp)
+      ? Math.max(0, Math.floor((Date.now() - timestamp) / 1000))
+      : null;
+    const maxAgeSeconds = {
+      REGULAR: 30 * 60,
+      PREMARKET: 60 * 60,
+      AFTERHOURS: 60 * 60,
+      CLOSED: 96 * 60 * 60,
+    }[expectedSession];
+    const sessionMismatch = expectedSession === "REGULAR" && snapshotSession !== "REGULAR";
+    const tooOld = ageSeconds == null || ageSeconds > maxAgeSeconds;
+    const stale = sessionMismatch || tooOld;
+    let staleReason = null;
+    if (sessionMismatch) {
+      staleReason = `\u7f8e\u80a1\u5df2\u5f00\u76d8\uff0c\u4f46\u4e91\u7aef\u4ecd\u662f${sessionLabel(snapshotSession)}\u5feb\u7167`;
+    } else if (tooOld) {
+      staleReason = ageSeconds == null
+        ? "\u4e91\u7aef\u884c\u60c5\u65f6\u95f4\u672a\u77e5"
+        : `\u4e91\u7aef\u884c\u60c5\u5df2${Math.ceil(ageSeconds / 60)}\u5206\u949f\u672a\u66f4\u65b0`;
+    }
+    return { ageSeconds, expectedSession, marketDataTime, snapshotSession, stale, staleReason };
+  }
+
   async function publicStatus() {
     const [manifest, overviewEnvelope, watchlistEnvelope] = await Promise.all([
       loadManifest(),
@@ -126,24 +174,33 @@
         { benchmark: item.benchmark, above_ma50: null },
       ]),
     );
-    const ageSeconds = Math.max(
-      0,
-      Math.floor((Date.now() - Date.parse(manifest.as_of || manifest.generated_at)) / 1000),
-    );
+    const freshness = snapshotFreshness(manifest, overviewEnvelope);
+    const qualityFailed = manifest.quality?.status === "FAILED";
+    const lastError = qualityFailed
+      ? "\u516c\u5f00\u5feb\u7167\u751f\u6210\u5931\u8d25\uff0c\u5df2\u6682\u505c\u884c\u60c5\u7ed3\u8bba"
+      : freshness.stale
+        ? `${freshness.staleReason}\uff0c\u5df2\u6682\u505c\u76d8\u4e2d\u7ed3\u8bba`
+        : null;
     return {
       running: true,
       configured: true,
       public_read_only: true,
-      last_error: manifest.quality?.status === "FAILED" ? "公开快照生成失败" : null,
+      last_error: lastError,
       provider: manifest.source?.provider || overview.provider || "公开行情",
       feed: manifest.source?.feed || "static-snapshot",
       is_official_realtime: false,
       last_refresh: manifest.generated_at,
-      market_data_time: manifest.as_of,
-      quote_age_seconds: Number.isFinite(ageSeconds) ? ageSeconds : null,
-      quote_is_fresh: false,
-      market_session: manifest.source?.session || "CLOSED",
-      market_session_label: sessionLabel(manifest.source?.session),
+      market_data_time: freshness.marketDataTime,
+      quote_age_seconds: freshness.ageSeconds,
+      quote_is_fresh: !qualityFailed && !freshness.stale && freshness.expectedSession === "REGULAR",
+      market_data_stale: qualityFailed || freshness.stale,
+      stale_reason: freshness.staleReason,
+      market_session: freshness.expectedSession,
+      market_session_label: freshness.stale
+        ? `${sessionLabel(freshness.expectedSession)}\u00b7\u5feb\u7167\u8fc7\u671f`
+        : sessionLabel(freshness.expectedSession),
+      snapshot_session: freshness.snapshotSession,
+      snapshot_id: manifest.snapshot_id,
       poll_seconds: 60,
       ticker_count: Number(watchlist.symbol_count || 0),
       symbol_count: Number(watchlist.symbol_count || 0),
@@ -320,8 +377,13 @@
       return jsonResponse({ symbol, held: Boolean(payload.held), local_only: true });
     }
     if (path === "/api/refresh") {
-      await loadManifest(true);
-      return jsonResponse({ accepted: true, public_snapshot: true }, 202);
+      const before = activeSnapshotId || (await loadManifest()).snapshot_id;
+      const manifest = await loadManifest(true);
+      const refreshed = manifest.snapshot_id !== before;
+      return jsonResponse({ accepted: false, public_snapshot: true, refreshed,
+        snapshot_id: manifest.snapshot_id,
+        message: refreshed ? "\u5df2\u52a0\u8f7d\u4e91\u7aef\u6700\u65b0\u5feb\u7167" : "\u4e91\u7aef\u6682\u65f6\u6ca1\u6709\u66f4\u65b0\uff1b\u7cfb\u7edf\u4f1a\u7ee7\u7eed\u81ea\u52a8\u68c0\u67e5",
+      });
     }
     if (path === "/api/ai/analyze") {
       return errorResponse(

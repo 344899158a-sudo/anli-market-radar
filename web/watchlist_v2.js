@@ -490,11 +490,14 @@ async function loadStatus() {
   $('connection').textContent = status.last_error ? '异常' : status.quote_is_fresh ? '盘中近实时' : status.market_session_label || '已连接';
   $('connection').className = status.last_error ? 'negative' : status.quote_is_fresh ? 'positive' : 'watch';
   const freshnessText = status.market_session === 'REGULAR' ? (ageMinutes == null ? '报价时间未知' : `报价${ageMinutes}分钟前`) : '当前显示最近常规交易时段报价';
-  $('feed').textContent = status.last_error ? String(status.last_error).slice(0, 55) : `${status.provider || status.feed} · ${status.market_session_label || ''} · ${freshnessText}`;
+  $('feed').textContent = status.last_error ? String(status.last_error).slice(0, 90) : `${status.provider || status.feed} \u00b7 ${status.market_session_label || ''} \u00b7 ${freshnessText}`;
   $('updated').textContent = fmtTime(status.market_data_time || status.last_refresh);
   $('poll').textContent = `每 ${status.poll_seconds} 秒 · ${status.ticker_count}只`;
   $('setup').classList.toggle('hidden', !status.last_error);
+  $('setup').querySelector('strong').textContent = status.market_data_stale ? '\u4e91\u7aef\u884c\u60c5\u5feb\u7167\u5df2\u8fc7\u671f' : '\u516c\u5f00\u884c\u60c5\u6682\u4e0d\u53ef\u7528';
+  $('setup').querySelector('p').textContent = status.last_error || '\u7cfb\u7edf\u4f1a\u81ea\u52a8\u91cd\u8bd5\uff0c\u514dKey\u516c\u5f00\u884c\u60c5\u53ef\u80fd\u77ed\u6682\u9650\u6d41\u3002';
   renderSectors(status.sector_status);
+  return status;
 }
 
 function renderSectorPulse(data) {
@@ -576,10 +579,10 @@ $('notifyBtn').onclick = async () => {
   toast(permission === 'granted' ? '本地声音和桌面提醒已开启' : '未获得通知权限');
 };
 $('refreshBtn').onclick = async () => {
-  await get('/api/refresh', {method: 'POST'});
+  const result = await get('/api/refresh', {method: 'POST'});
   if (window.ANLI_PUBLIC_MODE) {
     await tick();
-    toast('已检查最新云端快照');
+    toast(result.message || (result.refreshed ? "\u5df2\u52a0\u8f7d\u4e91\u7aef\u6700\u65b0\u5feb\u7167" : "\u4e91\u7aef\u6682\u65f6\u6ca1\u6709\u66f4\u65b0"));
   } else {
     toast('已请求刷新48只股票，结果会自动更新');
   }
@@ -700,10 +703,17 @@ async function tick() {
   if (tickInFlight || document.hidden) return;
   tickInFlight = true;
   try {
+    const status = await loadStatus();
     const results = await Promise.allSettled([
-      loadAI(), loadStatus(), loadAlerts(), loadMarketOverview(), loadSectorPulse()
+      loadAI(), loadAlerts(), loadMarketOverview(), loadSectorPulse()
     ]);
     await loadSignals();
+    if (status.market_data_stale) {
+      $('marketJointAction').className = 'market-joint-action danger';
+      $('marketJointAction').textContent = `${status.last_error}\u3002\u9875\u9762\u4fdd\u7559\u65e7\u5feb\u7167\u4ec5\u4f9b\u56de\u770b\uff0c\u4e0d\u4f5c\u4e3a\u5f53\u524d\u4ea4\u6613\u4f9d\u636e\u3002`;
+      $('qqqRadarGate').className = 'qqq-radar-gate blocked';
+      $('qqqRadarGate').textContent = `${status.last_error}\u3002QQQ \u5f53\u524d\u884c\u52a8\u7ed3\u8bba\u5df2\u963b\u65ad\u3002`;
+    }
     const failures = results
       .filter(result => result.status === 'rejected')
       .map(result => result.reason?.message || '模块读取失败');
