@@ -23,6 +23,11 @@ class EventCalendarTests(unittest.TestCase):
         self.assertEqual(monday_result["weeks"][0]["end"], "2026-08-09")
         self.assertEqual(monday_result["weeks"][0]["label"], "本周")
 
+        tuesday_result = build_event_calendar(date(2026, 8, 4))
+        self.assertEqual(tuesday_result["weeks"][0]["start"], "2026-08-03")
+        self.assertEqual(tuesday_result["weeks"][0]["end"], "2026-08-09")
+        self.assertEqual(tuesday_result["weeks"][0]["label"], "本周")
+
     def test_builds_four_weeks_from_traceable_sources(self):
         result = build_event_calendar(date(2026, 7, 27))
         self.assertEqual(len(result["weeks"]), 4)
@@ -39,8 +44,8 @@ class EventCalendarTests(unittest.TestCase):
             now=datetime(2026, 8, 3, 10, 30, tzinfo=timezone.utc),
         )
         stale = build_event_calendar(
-            date(2026, 8, 5),
-            now=datetime(2026, 8, 5, 10, 30, tzinfo=timezone.utc),
+            date(2026, 8, 6),
+            now=datetime(2026, 8, 6, 10, 30, tzinfo=timezone.utc),
         )
         self.assertEqual(fresh["verification_status"], "已核验")
         self.assertEqual(stale["verification_status"], "需要重新核验")

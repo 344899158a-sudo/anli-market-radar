@@ -5,7 +5,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 
-VERIFIED_AT = "2026-08-03T17:55:00+08:00"
+VERIFIED_AT = "2026-08-04T09:27:47+08:00"
 ET = ZoneInfo("America/New_York")
 
 FED = ("Federal Reserve", "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm", "官方日历确认")
@@ -86,9 +86,11 @@ def _risk_label(score: int) -> str:
     return "很高" if score >= 4 else "高" if score == 3 else "中" if score == 2 else "低"
 
 
-def _next_or_same_monday(value: date) -> date:
-    """Return the start of the next complete Monday-Sunday week."""
-    return value + timedelta(days=(-value.weekday()) % 7)
+def _natural_week_start(value: date) -> date:
+    """Return this Monday, except Sunday rolls forward to the next week."""
+    if value.weekday() == 6:
+        return value + timedelta(days=1)
+    return value - timedelta(days=value.weekday())
 
 
 def build_event_calendar(
@@ -98,7 +100,7 @@ def build_event_calendar(
 ) -> dict[str, Any]:
     generated_at = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     today = today or generated_at.astimezone(ET).date()
-    first_week_start = _next_or_same_monday(today)
+    first_week_start = _natural_week_start(today)
     now = generated_at
     verified = datetime.fromisoformat(VERIFIED_AT).astimezone(timezone.utc)
     age_hours = max(0, (now - verified).total_seconds() / 3600)
@@ -125,7 +127,7 @@ def build_event_calendar(
         )
         weeks.append({
             "index": index + 1, "start": start.isoformat(), "end": end.isoformat(),
-            "label": ("本周" if start == today else "下周") if index == 0 else f"第{index + 1}周",
+            "label": ("下周" if today.weekday() == 6 else "本周") if index == 0 else f"第{index + 1}周",
             "risk_score": score, "risk_label": _risk_label(score),
             "event_count": len(events), "critical_count": critical_count,
             "action": action, "events": events,
