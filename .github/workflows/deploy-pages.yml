@@ -1,9 +1,8 @@
-name: 更新统一版行情并部署 Pages
+name: 更新行情并部署 Pages
 
 on:
   push:
     branches: ["main"]
-  pull_request:
   workflow_dispatch:
   schedule:
     - cron: "11,26,41,56 * * * 1-5"
@@ -11,108 +10,48 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: anli-pages-${{ github.ref }}
+  group: pages
   cancel-in-progress: true
 
 jobs:
-  validate-and-build:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
     steps:
-      - name: 读取统一版代码
+      - name: 读取独立站代码
         uses: actions/checkout@v4
 
-      - name: 使用 Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: 使用 Node.js 22
+      - name: 使用 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
 
-      - name: 恢复私有行情历史缓存
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/cache@v4
-        with:
-          path: .runtime/market_history_cache.json
-          key: anli-history-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: |
-            anli-history-${{ runner.os }}-
+      - name: 运行规则测试
+        run: npm test
 
-      - name: 运行公开版 Python 回归
-        run: >-
-          python -m unittest -v
-          tests.test_advanced_technical
-          tests.test_calendar_fallback
-          tests.test_event_calendar
-          tests.test_history_cache
-          tests.test_public_market_ohlcv
-          tests.test_public_release
-          tests.test_public_release_export
-          tests.test_public_site_build
-          tests.test_public_snapshot
-          tests.test_public_snapshot_quality
-          tests.test_v2_data_source
-          tests.test_v2_engine
-          tests.test_v2_overlay
+      - name: 刷新 Nasdaq 真实数据
+        run: npm run refresh
 
-      - name: 检查 Python 与浏览器脚本
-        shell: bash
-        run: |
-          python -m compileall -q src tools
-          for file in web/*.js; do node --check "$file"; done
-          node --test tests/public_adapter.test.mjs
-
-      - name: 生成并验证真实公开快照
-        id: live_release
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        continue-on-error: true
-        run: >-
-          python tools/export_public_release.py .site
-          --runtime .runtime
-          --timeout-seconds 840
-
-      - name: 实时快照失败时仅更新已核验事件日历
-        if: >-
-          github.ref == 'refs/heads/main' &&
-          github.event_name != 'pull_request' &&
-          steps.live_release.outcome == 'failure'
-        run: >-
-          python tools/export_calendar_fallback.py .site
-          --base-url https://344899158a-sudo.github.io/anli-market-radar/
-
-      - name: 再次核对发布物
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        run: python tools/validate_public_release.py .site/data
-
-      - name: 生成 ANLI 2.1 决策层与完整详情页
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        run: python tools/build_v2_overlay.py .site
+      - name: 验证将要发布的快照
+        run: npm run validate
 
       - name: 配置 GitHub Pages
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
-      - name: 上传已验证的统一版网站
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      - name: 上传静态网页
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .site
+          path: public
 
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: validate-and-build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: 发布公开网址
         id: deployment
