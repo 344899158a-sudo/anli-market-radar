@@ -487,8 +487,14 @@ async function loadMarketOverview() {
 async function loadStatus() {
   const status = await get('/api/status');
   const ageMinutes = status.quote_age_seconds == null ? null : Math.round(status.quote_age_seconds / 60);
-  $('connection').textContent = status.last_error ? '异常' : status.quote_is_fresh ? '盘中近实时' : status.market_session_label || '已连接';
-  $('connection').className = status.last_error ? 'negative' : status.quote_is_fresh ? 'positive' : 'watch';
+  $('connection').textContent = status.market_data_stale
+    ? '\u5df2\u8fde\u63a5\u00b7\u6570\u636e\u5ef6\u8fdf'
+    : status.last_error
+      ? '\u8fde\u63a5\u5f02\u5e38'
+      : status.quote_is_fresh ? '\u76d8\u4e2d\u8fd1\u5b9e\u65f6' : status.market_session_label || '\u5df2\u8fde\u63a5';
+  $('connection').className = status.last_error && !status.market_data_stale
+    ? 'negative'
+    : status.quote_is_fresh ? 'positive' : 'watch';
   const freshnessText = status.market_session === 'REGULAR' ? (ageMinutes == null ? '报价时间未知' : `报价${ageMinutes}分钟前`) : '当前显示最近常规交易时段报价';
   $('feed').textContent = status.last_error ? String(status.last_error).slice(0, 90) : `${status.provider || status.feed} \u00b7 ${status.market_session_label || ''} \u00b7 ${freshnessText}`;
   $('updated').textContent = fmtTime(status.market_data_time || status.last_refresh);
