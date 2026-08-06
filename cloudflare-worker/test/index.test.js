@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { dispatchRefresh, inspectSnapshot, newYorkSession } from "../src/index.js";
+import {
+  dispatchRefresh,
+  inspectSnapshot,
+  MARKET_REFRESH_CRON,
+  newYorkSession,
+  WEEKEND_CALENDAR_CRON,
+} from "../src/index.js";
 
 const env = {
   PUBLIC_MANIFEST_URL: "https://example.test/data/manifest.json",
@@ -61,4 +68,9 @@ test("dispatch uses a secret without exposing it in the URL or body", async () =
   assert.equal(request.input, "https://api.github.com/repos/owner/repo/actions/workflows/deploy.yml/dispatches");
   assert.equal(request.options.headers.Authorization, "Bearer test-token");
   assert.deepEqual(JSON.parse(request.options.body), { ref: "main" });
+});
+
+test("wrangler cron expressions match the Worker constants", () => {
+  const config = JSON.parse(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
+  assert.deepEqual(config.triggers.crons, [MARKET_REFRESH_CRON, WEEKEND_CALENDAR_CRON]);
 });

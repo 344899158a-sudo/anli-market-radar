@@ -1,4 +1,6 @@
 const CONTRACT_VERSION = "anli-public-v1";
+export const MARKET_REFRESH_CRON = "3,18,33,48 * * * MON-FRI";
+export const WEEKEND_CALENDAR_CRON = "37 0 * * SAT,SUN";
 const ALLOWED_ORIGINS = new Set([
   "https://344899158a-sudo.github.io",
   "http://127.0.0.1:8775",
@@ -132,7 +134,7 @@ export default {
 
   async scheduled(controller, env) {
     const now = new Date(controller.scheduledTime);
-    if (controller.cron === "37 0 * * 0,6") {
+    if (controller.cron === WEEKEND_CALENDAR_CRON) {
       await dispatchRefresh(env);
       console.log(JSON.stringify({ event: "weekend_calendar_refresh_dispatched" }));
       return;
