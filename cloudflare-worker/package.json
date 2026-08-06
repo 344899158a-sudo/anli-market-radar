@@ -1,0 +1,12 @@
+{
+  "name": "anli-market-radar-refresh-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "wrangler deploy --dry-run"
+  },
+  "devDependencies": {
+    "wrangler": "^4.92.0"
+  }
+}

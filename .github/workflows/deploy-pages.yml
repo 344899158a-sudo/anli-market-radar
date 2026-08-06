@@ -65,6 +65,7 @@ jobs:
           python -m compileall -q src tools
           for file in web/*.js; do node --check "$file"; done
           node --test tests/public_adapter.test.mjs
+          node --test cloudflare-worker/test/*.test.js
 
       - name: 生成并验证真实公开快照
         id: live_release

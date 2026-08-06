@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "anli-market-radar-refresh",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "triggers": {
+    "crons": ["3,18,33,48 * * * 1-5", "37 0 * * 0,6"]
+  },
+  "vars": {
+    "GITHUB_OWNER": "344899158a-sudo",
+    "GITHUB_REPO": "anli-market-radar",
+    "GITHUB_WORKFLOW": "deploy-pages.yml",
+    "PUBLIC_MANIFEST_URL": "https://344899158a-sudo.github.io/anli-market-radar/data/manifest.json"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}
