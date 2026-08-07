@@ -102,6 +102,10 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: python tools/validate_public_release.py .site/data
 
+      - name: 生成 ANLI 2.1 决策层与完整详情页
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: python tools/build_v2_overlay.py .site
+
       - name: 配置 GitHub Pages
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
