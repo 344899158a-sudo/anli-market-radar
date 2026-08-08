@@ -194,7 +194,7 @@ function renderSignals() {
     const change = Number(item.day_change_pct || 0);
     const missing = (opportunity.missing_hard || []).join('、') || '硬条件已齐';
     return `<tr>
-      <td><div class="stock-title"><a class="ticker" href="/qqq_trendiq.html?symbol=${encodeURIComponent(item.symbol)}">${esc(item.symbol)}</a><a class="technical-open" href="/qqq_trendiq.html?symbol=${encodeURIComponent(item.symbol)}">📈 完整技术分析</a><button class="technical-preview" data-symbol="${item.symbol}">快速预览</button></div><span class="company">${esc(item.name)} · ${esc(item.sector)}</span></td>
+      <td><div class="stock-title"><a class="ticker" href="./qqq_trendiq.html?symbol=${encodeURIComponent(item.symbol)}">${esc(item.symbol)}</a><a class="technical-open" href="./qqq_trendiq.html?symbol=${encodeURIComponent(item.symbol)}">📈 完整技术分析</a><button class="technical-preview" data-symbol="${item.symbol}">快速预览</button></div><span class="company">${esc(item.name)} · ${esc(item.sector)}</span></td>
       <td><div class="stage-block"><span class="stage ${stageClass(opportunity.stage)}">${esc(opportunity.stage_label)}</span><span class="final-score">综合${opportunity.final_score}分 · ${opportunity.hard_passed}/${opportunity.hard_total}</span></div></td>
       <td>$${Number(item.price || 0).toFixed(2)}<span class="company ${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</span></td>
       <td>${item.ma50 ? '$' + Number(item.ma50).toFixed(2) : '—'}<span class="company ${Number(item.distance_ma50_pct || 0) >= 0 ? 'positive' : 'negative'}">${item.distance_ma50_pct ?? '—'}%</span></td>

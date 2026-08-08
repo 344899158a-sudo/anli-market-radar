@@ -22,6 +22,8 @@ class PublicSiteBuildTests(unittest.TestCase):
             qqq = (output / "qqq_trendiq.html").read_text(encoding="utf-8")
             playbooks = (output / "playbooks.html").read_text(encoding="utf-8")
             checkin = (output / "checkin.html").read_text(encoding="utf-8")
+            watchlist_js = (output / "watchlist_v2.js").read_text(encoding="utf-8")
+            v2_js = (output / "v2_app.js").read_text(encoding="utf-8")
 
             self.assertIn("原则驱动实时机会雷达", index)
             self.assertIn('href="./watchlist_v2.css', index)
@@ -45,6 +47,10 @@ class PublicSiteBuildTests(unittest.TestCase):
                 "\n".join((index, qqq, playbooks, checkin)),
                 r'(?:href|src|data-detail-href)="/',
             )
+            self.assertIn('href="./qqq_trendiq.html?symbol=', watchlist_js)
+            self.assertIn('href="./qqq_trendiq.html?symbol=', v2_js)
+            self.assertNotIn('href="/qqq_trendiq.html?symbol=', watchlist_js)
+            self.assertNotIn('href="/qqq_trendiq.html?symbol=', v2_js)
 
     def test_build_copies_only_explicit_public_assets(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

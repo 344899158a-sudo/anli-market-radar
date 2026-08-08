@@ -50,7 +50,7 @@ class NasdaqKlineTests(unittest.TestCase):
         trendiq_js = (ROOT / "web" / "qqq_trendiq.js").read_text(encoding="utf-8")
         self.assertIn('href="/playbooks.html"', html)
         self.assertNotIn('id="decisionCenter"', html)
-        self.assertIn('/qqq_trendiq.html?symbol=${encodeURIComponent(item.symbol)}', watchlist_js)
+        self.assertIn('./qqq_trendiq.html?symbol=${encodeURIComponent(item.symbol)}', watchlist_js)
         self.assertIn('id="technicalTitle"', trendiq_html)
         self.assertIn('new URLSearchParams(location.search)', trendiq_js)
         self.assertIn('/api/technical?symbol=${encodeURIComponent(TECH_SYMBOL)}', trendiq_js)
