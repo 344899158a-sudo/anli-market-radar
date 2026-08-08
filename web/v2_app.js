@@ -567,7 +567,7 @@
       <section class="detail-section"><h3>预期差引擎 <span>${e(gap.label)}</span></h3><div class="gap-grid">${gap.components.map(component => `<div class="gap-item ${statusClass(component.status)}"><label>${e(component.status)}</label><strong>${e(component.label)}</strong><p>${component.value == null ? "证据尚未接入" : e(component.value)}</p></div>`).join("")}</div><div class="detail-card" style="margin-top:8px"><p>${e(gap.formula)}</p></div></section>
       <section class="detail-section"><h3>入场、失效与退出</h3><div class="plan-grid"><div class="plan-card"><label>ENTRY TRIGGER</label><p>${e(item.plan.entry_trigger)}</p></div><div class="plan-card invalidation"><label>INVALIDATION</label><p>${e(item.plan.invalidation)}</p></div></div><div class="detail-card" style="margin-top:8px"><ul class="take-profit-list">${item.plan.take_profit.map(rule => `<li>${e(rule)}</li>`).join("") || "<li>无交易计划</li>"}</ul></div></section>
       <section class="detail-section"><h3>${e(item.driver_tree.archetype)} · 驱动树</h3><div class="driver-grid">${item.driver_tree.drivers.map(driver => `<div class="driver-item">${e(driver)}</div>`).join("")}</div><h3 style="margin-top:12px">逻辑证伪条件</h3><div class="driver-grid">${item.driver_tree.falsifiers.map(driver => `<div class="driver-item falsifier">${e(driver)}</div>`).join("")}</div></section>
-      <section class="detail-section"><h3>TrendIQ 技术结构 <span>公开快照 · 非执行行情</span></h3>${technical ? technicalDetail(technical) : `<div class="detail-card"><p>${e(technicalError || "正在加载技术快照…")}</p></div>`}</section>`;
+      <section class="detail-section"><h3>TrendIQ 技术结构 <span>与 QQQ 相同的多周期系统</span></h3><div class="detail-card" style="margin-bottom:8px"><a class="text-button" href="/qqq_trendiq.html?symbol=${encodeURIComponent(item.symbol)}">打开 ${e(item.symbol)} 完整交互K线、MACD、RSI与情景计划 →</a></div>${technical ? technicalDetail(technical) : `<div class="detail-card"><p>${e(technicalError || "正在加载技术快照…")}</p></div>`}</section>`;
   }
   function timeframeCard(name, frame) {
     const indicators = frame?.indicators || {};
@@ -631,4 +631,3 @@
 
   loadDashboard();
 })();
-

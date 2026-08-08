@@ -4,18 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#07110f">
-  <title>QQQ 决策雷达</title>
+  <title>TrendIQ 多周期技术分析</title>
   <link rel="stylesheet" href="/qqq_trendiq.css?v=20260731-unified2">
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/"><span class="brand-mark">A</span><span>ANLI</span><small>QQQ 决策雷达</small></a>
-    <nav><a href="/">观察池</a><button id="notifyBtn" class="quiet">开启提醒</button><button id="copilotToggle" class="iq-button">规则助手</button></nav>
+    <a class="brand" href="/"><span class="brand-mark">A</span><span>ANLI</span><small id="radarLabel">TrendIQ 技术分析</small></a>
+    <nav><a href="/">1.0 全景</a><a href="/playbooks.html">2.0 剧本</a><button id="notifyBtn" class="quiet">开启提醒</button><button id="copilotToggle" class="iq-button">规则助手</button></nav>
   </header>
 
   <main>
     <section class="hero panel">
-      <div class="quote"><div class="symbol-icon">Q</div><div><span>NASDAQ · QQQ</span><strong id="price">—</strong><em id="change">—</em></div></div>
+      <div class="quote"><div id="symbolIcon" class="symbol-icon">—</div><div><span id="securityLabel">正在读取股票</span><strong id="price">—</strong><em id="change">—</em></div></div>
       <div class="decision"><span>当前结论</span><strong id="signalHeadline">正在计算规则条件…</strong><small id="freshness">正在读取数据</small></div>
       <div class="completion"><span>条件完成度</span><b id="gradeScore">—</b><small id="grade">—</small></div>
     </section>
@@ -24,7 +24,7 @@
 
     <section class="workspace panel">
       <div class="workspace-head">
-        <div><h1>QQQ 多周期技术结构</h1><p id="chartMeta">K线 · 成交量 · MACD · RSI · 支撑阻力</p></div>
+        <div><h1 id="technicalTitle">多周期技术结构</h1><p id="chartMeta">K线 · 成交量 · MACD · RSI · 支撑阻力</p></div>
         <div class="timeframes" id="timeframes"></div>
         <button id="refreshBtn" class="primary">重新分析</button>
       </div>
@@ -66,7 +66,7 @@
     <p class="footer-note">技术分析是概率与风险管理工具，不是收益承诺，也不代替券商实时行情和你的最终决定。</p>
   </main>
 
-  <aside id="copilot" class="copilot" aria-label="QQQ规则解释助手">
+  <aside id="copilot" class="copilot" aria-label="TrendIQ规则解释助手">
     <div class="copilot-head"><div><span>ANLI</span><b>规则解释助手</b></div><button id="copilotClose" aria-label="关闭">×</button></div>
     <div id="copilotState" class="copilot-state">等待分析结果…</div><div id="copilotAnswer" class="copilot-answer">我会解释结论、失效条件和下一触发条件。</div>
     <div class="quick-questions"><button data-question="why">为什么？</button><button data-question="buy">现在能买？</button><button data-question="next">何时转强？</button><button data-question="risk">主要风险？</button></div>

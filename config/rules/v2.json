@@ -18,6 +18,8 @@
   "market_gate": {
     "regime_exposure_cap_pct": {
       "UPTREND": "70",
+      "STRONG_LOW_VOL": "70",
+      "STRONG_HIGH_VOL": "45",
       "ROTATION": "40",
       "RANGE": "35",
       "PANIC_REVERSAL": "20",
@@ -116,4 +118,3 @@
     "sell_fact_trim_fraction": "0.50"
   }
 }
-

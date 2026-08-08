@@ -20,6 +20,8 @@ class PublicSiteBuildTests(unittest.TestCase):
             output = MODULE.build_public_site(directory)
             index = (output / "index.html").read_text(encoding="utf-8")
             qqq = (output / "qqq_trendiq.html").read_text(encoding="utf-8")
+            playbooks = (output / "playbooks.html").read_text(encoding="utf-8")
+            checkin = (output / "checkin.html").read_text(encoding="utf-8")
 
             self.assertIn("原则驱动实时机会雷达", index)
             self.assertIn('href="./watchlist_v2.css', index)
@@ -32,22 +34,17 @@ class PublicSiteBuildTests(unittest.TestCase):
                 qqq.index("./public_adapter.js"),
                 qqq.index("./qqq_trendiq.js"),
             )
-            self.assertNotIn('id="decisionCenter"', index)
-            self.assertNotIn('href="#decisionCenter"', index)
-            self.assertNotIn("今日纪律行动", index)
-            self.assertNotIn("checkin.html", index)
-            self.assertNotIn("decision_center.css", index)
-            self.assertNotIn("decision_center.js", index)
+            self.assertIn("ANLI 2.0", playbooks)
+            self.assertLess(
+                playbooks.index("./public_adapter.js"),
+                playbooks.index("./v2_app.js"),
+            )
+            self.assertNotIn("今日纪律", index)
+            self.assertIn('src="./checkin.js', checkin)
             self.assertNotRegex(
-                "\n".join((index, qqq)),
+                "\n".join((index, qqq, playbooks, checkin)),
                 r'(?:href|src|data-detail-href)="/',
             )
-
-            desktop = (ROOT / "web" / "watchlist_v2.html").read_text(
-                encoding="utf-8"
-            )
-            self.assertIn("今日纪律行动", desktop)
-            self.assertIn('/checkin.html', desktop)
 
     def test_build_copies_only_explicit_public_assets(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -63,16 +60,9 @@ class PublicSiteBuildTests(unittest.TestCase):
                     *MODULE.PUBLIC_ASSETS,
                     "index.html",
                     "qqq_trendiq.html",
-                },
-            )
-            self.assertTrue(
-                {
-                    "decision_center.css",
-                    "decision_center.js",
-                    "checkin.css",
-                    "checkin.js",
+                    "playbooks.html",
                     "checkin.html",
-                }.isdisjoint(names)
+                },
             )
             self.assertFalse((output / "config_watchlist.json").exists())
             self.assertFalse((output / "watchlist_state.db").exists())

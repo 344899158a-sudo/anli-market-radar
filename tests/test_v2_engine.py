@@ -93,6 +93,16 @@ class DecisionEngineV2Tests(unittest.TestCase):
         self.assertEqual(stock["entry"]["state"], "MARKET_BLOCKED")
         self.assertEqual(self.decide(source)["market_gate"]["allocation_cap_pct"], "0")
 
+    def test_live_v1_strong_high_vol_regime_keeps_reduced_risk_budget(self) -> None:
+        source = bundle(
+            self.now,
+            [opportunity(drawdown=-4, volume=1.25)],
+            regime="STRONG_HIGH_VOL",
+        )
+        result = self.decide(source)
+        self.assertEqual(result["market_gate"]["allocation_cap_pct"], "45")
+        self.assertNotEqual(result["market_gate"]["allocation_cap_pct"], "0")
+
     def test_stale_snapshot_blocks_research(self) -> None:
         source = bundle(self.now, [opportunity(drawdown=-4)], age_hours=120)
         result = self.decide(source)
@@ -168,4 +178,3 @@ class DecisionEngineV2Tests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

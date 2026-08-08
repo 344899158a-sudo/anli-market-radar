@@ -36,6 +36,39 @@ class HistoryCacheTests(unittest.TestCase):
             self.assertFalse(loaded.status["history_cache_stale"])
             self.assertFalse((Path(directory) / "market_history_cache.json.tmp").exists())
 
+    def test_fresh_cache_fetches_symbols_added_to_the_watchlist(self):
+        class HistoryClient:
+            def __init__(self):
+                self.calls = []
+
+            def historical_daily_bars(self, symbols, days):
+                self.calls.append((symbols, days))
+                return {
+                    symbol: [{"t": "2026-08-06", "c": 100.0}]
+                    for symbol in symbols
+                }
+
+        engine = self._engine(".")
+        engine.history = {"QQQ": [{"t": "2026-08-06", "c": 700.0}]}
+        engine.status["last_history_refresh"] = datetime.now(timezone.utc).isoformat()
+        engine.client = HistoryClient()
+        engine.config = type(
+            "Config",
+            (),
+            {"get": lambda self, key, default=None: 220 if key == "history_days" else default},
+        )()
+        engine._save_history_cache = lambda: None
+
+        original = MonitorEngine.all_symbols
+        try:
+            MonitorEngine.all_symbols = property(lambda self: ["QQQ", "WOLF"])
+            engine._refresh_history_if_needed()
+        finally:
+            MonitorEngine.all_symbols = original
+
+        self.assertEqual(engine.client.calls, [(["WOLF"], 220)])
+        self.assertIn("WOLF", engine.history)
+
     def test_invalid_history_cache_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "market_history_cache.json"

@@ -14,11 +14,17 @@ PUBLIC_ASSETS = (
     "watchlist_v2.css",
     "technical_advanced.css",
     "technical_simple.css",
+    "decision_center.css",
     "watchlist_v2.js",
     "technical_advanced.js",
     "technical_simple.js",
+    "decision_center.js",
     "qqq_trendiq.css",
     "qqq_trendiq.js",
+    "v2_styles.css",
+    "v2_app.js",
+    "checkin.css",
+    "checkin.js",
     "public_adapter.js",
 )
 
@@ -28,62 +34,8 @@ ROOT_ATTRIBUTE = re.compile(
 )
 
 
-PUBLIC_DISCIPLINE_PATTERNS = (
-    (
-        "decision center stylesheet",
-        re.compile(
-            r'^[ \t]*<link[^>]+href="/decision_center\.css[^"]*"[^>]*>\r?\n?',
-            re.MULTILINE,
-        ),
-    ),
-    (
-        "discipline check-in link",
-        re.compile(
-            r'^[ \t]*<a class="checkin-link"[^>]*>.*?</a>\r?\n?',
-            re.MULTILINE,
-        ),
-    ),
-    (
-        "discipline mobile navigation link",
-        re.compile(
-            r'^[ \t]*<a href="#decisionCenter"[^>]*>.*?</a>\r?\n?',
-            re.MULTILINE,
-        ),
-    ),
-    (
-        "today discipline section",
-        re.compile(
-            r'^[ \t]*<section id="decisionCenter"[^>]*>.*?</section>\r?\n?',
-            re.MULTILINE | re.DOTALL,
-        ),
-    ),
-    (
-        "decision center script",
-        re.compile(
-            r'^[ \t]*<script src="/decision_center\.js[^"]*"></script>\r?\n?',
-            re.MULTILINE,
-        ),
-    ),
-)
-
-
-def _without_public_discipline(text: str) -> str:
-    for label, pattern in PUBLIC_DISCIPLINE_PATTERNS:
-        text, count = pattern.subn("", text, count=1)
-        if count != 1:
-            raise ValueError(f"public shell is missing expected {label}")
-    return text
-
-
-def _public_html(
-    source_name: str,
-    *,
-    adapter_before: str | None = None,
-    remove_discipline: bool = False,
-) -> str:
+def _public_html(source_name: str, *, adapter_before: str | None = None) -> str:
     text = (WEB_ROOT / source_name).read_text(encoding="utf-8")
-    if remove_discipline:
-        text = _without_public_discipline(text)
     text = ROOT_ATTRIBUTE.sub(
         lambda match: (
             f'{match.group("attribute")}="./{match.group("value")}"'
@@ -118,12 +70,16 @@ def build_public_site(output_root: str | Path) -> Path:
         "index.html": _public_html(
             "watchlist_v2.html",
             adapter_before="watchlist_v2.js",
-            remove_discipline=True,
         ),
         "qqq_trendiq.html": _public_html(
             "qqq_trendiq.html",
             adapter_before="qqq_trendiq.js",
         ),
+        "playbooks.html": _public_html(
+            "v2_index.html",
+            adapter_before="v2_app.js",
+        ),
+        "checkin.html": _public_html("checkin.html"),
     }
     for target_name, content in html_files.items():
         (output / target_name).write_text(content, encoding="utf-8", newline="\n")

@@ -9,24 +9,23 @@
   <link rel="stylesheet" href="/watchlist_v2.css?v=20260731-unified2">
   <link rel="stylesheet" href="/technical_advanced.css?v=20260724-2">
   <link rel="stylesheet" href="/technical_simple.css?v=20260725-1">
-  <link rel="stylesheet" href="/decision_center.css?v=20260724-1">
 </head>
 <body>
 <header>
   <div>
     <p class="eyebrow">ANLI PRINCIPLE-DRIVEN OPPORTUNITY RADAR</p>
     <h1>原则驱动实时机会雷达</h1>
-    <p class="sub">48只重点股票 · 量价每30秒刷新 · AI核对盘前/盘中/盘后异动、最新新闻与SEC原始披露</p>
+    <p class="sub">52只重点股票 · 量价每30秒刷新 · AI核对盘前/盘中/盘后异动、最新新闻与SEC原始披露</p>
   </div>
   <div class="actions">
     <a class="qqq-console-link" href="/qqq_trendiq.html">QQQ 决策雷达</a>
-    <a class="checkin-link" href="/checkin.html">&#32426;&#24459;&#25171;&#21345;</a>
+    <a class="qqq-console-link" href="/playbooks.html">2.0 剧本指挥台</a>
     <button id="notifyBtn" class="secondary">开启本地提醒</button>
     <button id="refreshBtn">立即刷新</button>
   </div>
 </header>
 <nav class="mobile-module-nav" aria-label="Mobile module navigation">
-  <a href="#decisionCenter">&#32426;&#24459;</a>
+  <a href="/playbooks.html">2.0剧本</a>
   <a href="#marketOverview">&#22823;&#30424;</a>
   <a href="#eventCalendar">&#20107;&#20214;</a>
   <a href="#qqqRadar">QQQ</a>
@@ -47,15 +46,6 @@
   </section>
 
   <section id="setup" class="setup hidden"><strong>公开行情暂不可用</strong><p>系统会自动重试，免Key公开行情可能短暂限流。</p></section>
-  <section id="decisionCenter" class="panel decision-center">
-    <div class="panel-title"><h2>今日纪律行动</h2><span id="decisionAsOf">正在读取冻结决策快照</span></div>
-    <div class="decision-center-metrics">
-      <article><span>账户风险状态</span><b id="decisionRiskState">UNKNOWN</b><small>冻结优先于任何机会评分</small></article>
-      <article><span>必须处理</span><b id="decisionMustAct">0</b><small>EXIT / REDUCE / FREEZE</small></article>
-      <article><span>规则版本</span><b id="decisionRuleVersion">—</b><small>同输入、同版本、同结果</small></article>
-    </div>
-    <div id="decisionActions" class="decision-actions"><p class="empty">正在读取今日行动…</p></div>
-  </section>
   <section id="marketOverview" class="panel market-overview-panel home-core-panel module-drilldown" data-detail-href="/qqq_trendiq.html" tabindex="0" role="link" aria-label="打开 QQQ 大局观详细技术分析">
     <div class="panel-title">
       <div><p class="module-kicker">模块 A · 今天的大局观</p><h2>QQQ 大盘趋势与位置</h2></div>
@@ -173,6 +163,5 @@
 <script src="/watchlist_v2.js?v=20260731-unified3"></script>
 <script src="/technical_advanced.js?v=20260724-1"></script>
 <script src="/technical_simple.js?v=20260731-unified2"></script>
-<script src="/decision_center.js?v=20260724-1"></script>
 </body>
 </html>

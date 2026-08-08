@@ -18,13 +18,28 @@ from .advanced_technical import aggregate_bars, aggregate_intraday_bars
 
 
 class MonitorEngine:
+    _STATUS_CACHE_FIELDS = (
+        "last_refresh",
+        "last_history_refresh",
+        "market_data_time",
+        "qqq_above_ma50",
+        "sector_status",
+        "market_overview",
+        "sector_pulse",
+        "provider",
+        "feed",
+        "fallback_reason",
+    )
+
     def __init__(self, config: AppConfig, data_dir: str | Path) -> None:
         self.config = config
         alpaca = AlpacaClient(config.get("alpaca_feed", "iex"))
         self.client = alpaca if alpaca.configured else ResilientPublicClient()
         self.provider = "Alpaca IEX 实时" if alpaca.configured else self.client.active_provider
-        self._history_cache_path = Path(data_dir) / "market_history_cache.json"
-        self.store = StateStore(Path(data_dir) / "watchlist_state.db")
+        data_path = Path(data_dir)
+        self._history_cache_path = data_path / "market_history_cache.json"
+        self._status_cache_path = data_path / "market_status_cache.json"
+        self.store = StateStore(data_path / "watchlist_state.db")
         for symbol in config.get("holdings", []):
             self.store.set_holding(symbol, True)
         self.history: dict[str, list[dict[str, Any]]] = {}
@@ -40,6 +55,7 @@ class MonitorEngine:
         self._technical_cache: dict[str, tuple[float, dict[str, list[dict[str, Any]]], dict[str, str]]] = {}
         self._technical_lock = threading.Lock()
         self._load_history_cache()
+        self._load_status_cache()
 
     def _load_history_cache(self) -> None:
         try:
@@ -93,6 +109,117 @@ class MonitorEngine:
             encoding="utf-8",
         )
         temp_path.replace(self._history_cache_path)
+
+    def _load_status_cache(self) -> None:
+        try:
+            payload = json.loads(self._status_cache_path.read_text(encoding="utf-8"))
+            saved_at = datetime.fromisoformat(
+                str(payload.get("saved_at") or "").replace("Z", "+00:00")
+            )
+            if saved_at.tzinfo is None:
+                raise ValueError("status cache saved_at must include a timezone")
+            now = datetime.now(timezone.utc)
+            saved_at = saved_at.astimezone(timezone.utc)
+            if (saved_at - now).total_seconds() > 300:
+                raise ValueError("status cache saved_at is in the future")
+            cached = payload.get("status")
+            if not isinstance(cached, dict):
+                raise ValueError("status cache payload is invalid")
+            if not isinstance(cached.get("market_overview"), dict):
+                raise ValueError("status cache has no market overview")
+            if not isinstance(cached.get("sector_pulse"), dict):
+                raise ValueError("status cache has no sector pulse")
+            self.status.update(
+                {key: cached[key] for key in self._STATUS_CACHE_FIELDS if key in cached}
+            )
+            original_provider = str(self.status.get("provider") or "公开行情")
+            self.status.update({
+                "provider": f"{original_provider} · 最后有效缓存",
+                "feed": "last-known-good-cache",
+                "is_official_realtime": False,
+                "cached_snapshot": True,
+                "status_cache_loaded": True,
+                "status_cache_saved_at": saved_at.isoformat(),
+                "status_cache_age_seconds": max(0, int((now - saved_at).total_seconds())),
+            })
+            self.status.pop("status_cache_error", None)
+        except FileNotFoundError:
+            self._restore_status_from_local_state()
+        except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            self.status["status_cache_loaded"] = False
+            self.status["status_cache_error"] = str(exc)[:160]
+            self._restore_status_from_local_state()
+
+    def _restore_status_from_local_state(self) -> None:
+        signals = self.store.get_signals()
+        if not self.history or not signals:
+            self.status.setdefault("status_cache_loaded", False)
+            return
+        quote_times = [str(row.get("quote_time") or "") for row in signals]
+        market_data_time = max((value for value in quote_times if value), default="")
+        if not market_data_time:
+            self.status.setdefault("status_cache_loaded", False)
+            return
+        snapshots: dict[str, dict[str, Any]] = {}
+        window = int(self.config.rules["ma_days"])
+        sector_status = {
+            sector: {
+                "benchmark": benchmark,
+                "above_ma50": benchmark_above_ma50(
+                    self.history.get(benchmark, []), {}, window
+                ),
+            }
+            for sector, benchmark in self.config.sector_benchmarks.items()
+        }
+        cached_provider = "本地最后有效真实数据"
+        market_overview = build_market_overview(
+            self.history,
+            snapshots,
+            self.config.symbols,
+            cached_provider,
+        )
+        market_overview["as_of"] = market_data_time
+        self.status.update({
+            "last_refresh": market_data_time,
+            "market_data_time": market_data_time,
+            "qqq_above_ma50": benchmark_above_ma50(
+                self.history.get(self.config.get("benchmark", "QQQ"), []),
+                {},
+                window,
+            ),
+            "sector_status": sector_status,
+            "market_overview": market_overview,
+            "sector_pulse": build_semiconductor_pulse(
+                signals,
+                self.history,
+                snapshots,
+            ),
+            "provider": cached_provider,
+            "feed": "last-known-good-cache",
+            "is_official_realtime": False,
+            "cached_snapshot": True,
+            "status_cache_loaded": True,
+            "status_cache_saved_at": market_data_time,
+        })
+
+    def _save_status_cache(self) -> None:
+        if not self.status.get("market_overview") or not self.status.get("sector_pulse"):
+            return
+        payload = {
+            "saved_at": datetime.now(timezone.utc).isoformat(),
+            "status": {
+                key: self.status.get(key)
+                for key in self._STATUS_CACHE_FIELDS
+                if self.status.get(key) is not None
+            },
+        }
+        self._status_cache_path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = self._status_cache_path.with_suffix(".json.tmp")
+        temp_path.write_text(
+            json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+        temp_path.replace(self._status_cache_path)
     @property
     def reference_symbols(self) -> list[str]:
         return list(dict.fromkeys([self.config.get("benchmark", "QQQ"), *self.config.sector_benchmarks.values(), *MARKET_SYMBOLS]))
@@ -123,27 +250,32 @@ class MonitorEngine:
     def _ensure_history_refresh_async(self) -> None:
         last = self.status.get("last_history_refresh")
         stale = not last or (datetime.now(timezone.utc) - datetime.fromisoformat(last)).total_seconds() > 21600
-        if (self.history and not stale) or (self._history_thread and self._history_thread.is_alive()):
+        missing = [symbol for symbol in self.all_symbols if symbol not in self.history]
+        refresh_symbols = self.all_symbols if not self.history or stale else missing
+        if not refresh_symbols or (self._history_thread and self._history_thread.is_alive()):
             return
         self.status["history_loading"] = True
         self._history_thread = threading.Thread(
             target=self._history_worker,
+            args=(refresh_symbols,),
             name="qqq-history-loader",
             daemon=True,
         )
         self._history_thread.start()
 
-    def _history_worker(self) -> None:
+    def _history_worker(self, refresh_symbols: list[str] | None = None) -> None:
         try:
+            symbols = self.all_symbols if refresh_symbols is None else refresh_symbols
             fresh = self.client.historical_daily_bars(
-                self.all_symbols, int(self.config.get("history_days", 220))
+                symbols, int(self.config.get("history_days", 220))
             )
             quality_errors: dict[str, str] = {}
             if hasattr(self.client, "historical_ohlcv"):
                 quality_symbols = [
-                    symbol for symbol in self.config.symbols
-                    if self.config.symbol_meta[symbol].get("sector") == "\u534a\u5bfc\u4f53"
-                ] + ["SOXX", "QQQ", "^IXIC"]
+                    symbol for symbol in symbols
+                    if symbol in self.config.symbol_meta
+                    and self.config.symbol_meta[symbol].get("sector") == "\u534a\u5bfc\u4f53"
+                ] + [symbol for symbol in ("SOXX", "QQQ", "^IXIC") if symbol in symbols]
                 for symbol in dict.fromkeys(quality_symbols):
                     try:
                         history_range = "1y" if symbol == "^IXIC" else "5y"
@@ -164,13 +296,22 @@ class MonitorEngine:
     def _refresh_history_if_needed(self) -> None:
         last = self.status.get("last_history_refresh")
         stale = not last or (datetime.now(timezone.utc) - datetime.fromisoformat(last)).total_seconds() > 21600
-        if not self.history or stale:
-            self.history = self.client.historical_daily_bars(self.all_symbols, int(self.config.get("history_days", 220)))
+        missing = [symbol for symbol in self.all_symbols if symbol not in self.history]
+        refresh_symbols = self.all_symbols if not self.history or stale else missing
+        if refresh_symbols:
+            fresh = self.client.historical_daily_bars(
+                refresh_symbols, int(self.config.get("history_days", 220))
+            )
+            self.history.update(fresh)
             if hasattr(self.client, "historical_ohlcv"):
                 quality_symbols = [
-                    symbol for symbol in self.config.symbols
-                    if self.config.symbol_meta[symbol].get("sector") == "半导体"
-                ] + ["SOXX", "QQQ", "^IXIC"]
+                    symbol for symbol in refresh_symbols
+                    if symbol in self.config.symbol_meta
+                    and self.config.symbol_meta[symbol].get("sector") == "半导体"
+                ] + [
+                    symbol for symbol in ("SOXX", "QQQ", "^IXIC")
+                    if symbol in refresh_symbols
+                ]
                 quality_errors = {}
                 for symbol in dict.fromkeys(quality_symbols):
                     try:
@@ -235,7 +376,8 @@ class MonitorEngine:
             self.store.save_signals(signals); self._emit_alerts(signals, sector_pulse)
             market_overview = build_market_overview(self.history, snapshots, self.config.symbols, active_provider)
             quote_times = [s.get("quote_time") for s in signals if s.get("quote_time")]
-            self.status.update({"last_refresh": datetime.now(timezone.utc).isoformat(), "market_data_time": max(quote_times) if quote_times else None, "qqq_above_ma50": qqq_ok, "sector_status": sector_status, "market_overview": market_overview, "sector_pulse": sector_pulse, "provider": active_provider, "fallback_reason": getattr(self.client, "last_primary_error", None)})
+            self.status.update({"last_refresh": datetime.now(timezone.utc).isoformat(), "market_data_time": max(quote_times) if quote_times else None, "qqq_above_ma50": qqq_ok, "sector_status": sector_status, "market_overview": market_overview, "sector_pulse": sector_pulse, "provider": active_provider, "feed": self.client.feed, "is_official_realtime": isinstance(self.client, AlpacaClient), "fallback_reason": getattr(self.client, "last_primary_error", None), "last_error": None, "cached_snapshot": False, "status_cache_loaded": True})
+            self._save_status_cache()
 
     def _emit_alerts(self, signals: list[dict[str, Any]], sector_pulse: dict[str, Any] | None = None) -> None:
         day = date.today().isoformat()

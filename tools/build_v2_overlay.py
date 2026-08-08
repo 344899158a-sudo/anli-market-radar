@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -19,10 +20,13 @@ from anli_v2.engine import DecisionEngineV2  # noqa: E402
 
 
 ASSETS = {
-    "v2_index.html": "index.html",
-    "v2_styles.css": "styles.css",
-    "v2_app.js": "app.js",
+    "v2_styles.css": "v2_styles.css",
+    "v2_app.js": "v2_app.js",
 }
+
+ROOT_ATTRIBUTE = re.compile(
+    r'(?P<attribute>href|src)="/(?P<value>[^"]*)"'
+)
 
 
 def _json_bytes(payload: object) -> bytes:
@@ -139,6 +143,17 @@ def build_v2_overlay(site_root: str | Path) -> dict[str, Any]:
         if not source.is_file():
             raise FileNotFoundError(source)
         shutil.copy2(source, site / target_name)
+
+    playbooks_path = site / "playbooks.html"
+    if not playbooks_path.is_file():
+        html = (ROOT / "web" / "v2_index.html").read_text(encoding="utf-8")
+        html = ROOT_ATTRIBUTE.sub(
+            lambda match: (
+                f'{match.group("attribute")}="./{match.group("value")}"'
+            ),
+            html,
+        )
+        _atomic_write(playbooks_path, html.encode("utf-8"))
 
     _atomic_write(data_root / "dashboard-v2.json", _json_bytes(dashboard))
     generated = 0

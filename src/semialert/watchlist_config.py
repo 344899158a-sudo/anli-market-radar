@@ -25,6 +25,6 @@ class AppConfig:
 def load_config(path: str | Path) -> AppConfig:
     path = Path(path).resolve(); data = json.loads(path.read_text(encoding="utf-8-sig"))
     symbols = data.get("symbols", [])
-    if len(symbols) != 48 or len({item["symbol"] for item in symbols}) != 48:
-        raise ValueError("截图关注池必须包含48个唯一代码")
+    if len(symbols) != 52 or len({item["symbol"] for item in symbols}) != 52:
+        raise ValueError("关注池必须包含52个唯一代码")
     return AppConfig(path=path, raw=data)

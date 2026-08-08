@@ -52,12 +52,18 @@ jobs:
           tests.test_calendar_fallback
           tests.test_event_calendar
           tests.test_history_cache
+          tests.test_nasdaq_kline
           tests.test_public_market_ohlcv
           tests.test_public_release
           tests.test_public_release_export
           tests.test_public_site_build
           tests.test_public_snapshot
           tests.test_public_snapshot_quality
+          tests.test_status_cache
+          tests.test_v2_data_source
+          tests.test_v2_engine
+          tests.test_v2_overlay
+          tests.test_watchlist_config
 
       - name: 检查 Python 与浏览器脚本
         shell: bash

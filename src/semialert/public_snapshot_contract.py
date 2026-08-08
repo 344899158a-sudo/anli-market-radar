@@ -220,6 +220,9 @@ MODULE_FIELD_ALLOWLISTS = MappingProxyType(
                 "reasoning",
                 "data",
                 "warning",
+                "recommendation",
+                "market_context",
+                "security",
             }
         ),
         "qqq-analysis": frozenset(
@@ -243,6 +246,7 @@ MODULE_FIELD_ALLOWLISTS = MappingProxyType(
                 "warning",
                 "recommendation",
                 "market_context",
+                "security",
             }
         ),
         "evidence": frozenset(

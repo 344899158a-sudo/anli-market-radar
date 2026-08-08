@@ -783,6 +783,7 @@ class PublicSnapshotExporter:
                     analysis_signals[symbol],
                     market_source,
                     session,
+                    market_overview,
                 )
             else:
                 technical = self._build_technical(
@@ -790,6 +791,7 @@ class PublicSnapshotExporter:
                     analysis_signals[symbol],
                     market_source,
                     session,
+                    market_overview,
                 )
                 errors = technical.get("timeframe_errors") or {}
             as_of = str(
@@ -817,6 +819,7 @@ class PublicSnapshotExporter:
         signal: dict[str, Any],
         source: PublicSource,
         session: str,
+        market_overview: dict[str, Any],
     ) -> tuple[dict[str, Any], dict[str, str], list[str]]:
         missing = ["15m", "1h", "4h"]
         errors: dict[str, str] = {}
@@ -840,6 +843,7 @@ class PublicSnapshotExporter:
             errors["1D/1W"] = "cached daily history failed the data gate"
             return {"symbol": symbol}, errors, missing
         _mark_snapshot_only(analysis)
+        self._add_symbol_decision_context(analysis, signal, market_overview)
         analysis["timeframe_errors"] = errors
         return analysis, errors, missing
 
@@ -849,6 +853,7 @@ class PublicSnapshotExporter:
         signal: dict[str, Any],
         source: PublicSource,
         session: str,
+        market_overview: dict[str, Any],
     ) -> dict[str, Any]:
         timeframes, errors = self.engine.technical_timeframes(symbol)
         analysis = build_advanced_analysis(
@@ -860,8 +865,49 @@ class PublicSnapshotExporter:
             source["is_official_realtime"],
         )
         _mark_snapshot_only(analysis)
+        self._add_symbol_decision_context(analysis, signal, market_overview)
         analysis["timeframe_errors"] = dict(errors or {})
         return analysis
+
+    def _add_symbol_decision_context(
+        self,
+        analysis: dict[str, Any],
+        signal: dict[str, Any],
+        market_overview: dict[str, Any],
+    ) -> None:
+        symbol = str(analysis.get("symbol") or signal.get("symbol") or "")
+        assets = market_overview.get("assets") or {}
+        analysis["recommendation"] = build_qqq_recommendation(
+            analysis,
+            market_overview,
+        )
+        analysis["market_context"] = {
+            "score": market_overview.get("score"),
+            "regime": market_overview.get("regime"),
+            "regime_label": market_overview.get("regime_label"),
+            "position_label": market_overview.get("position_label"),
+            "action": market_overview.get("action"),
+            "breadth": market_overview.get("breadth"),
+            "qqq": assets.get("QQQ"),
+            "vix": assets.get("^VIX"),
+            "focus": {
+                key: signal.get(key)
+                for key in (
+                    "symbol",
+                    "price",
+                    "day_change_pct",
+                    "distance_ma50_pct",
+                    "drawdown20_pct",
+                    "quote_time",
+                )
+            },
+        }
+        meta = (self.engine.config.symbol_meta.get(symbol) or {})
+        analysis["security"] = {
+            "symbol": symbol,
+            "name": meta.get("name") or symbol,
+            "sector": meta.get("sector") or "未分组",
+        }
 
     def _build_qqq_analysis(
         self,
