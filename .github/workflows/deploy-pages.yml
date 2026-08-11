@@ -49,6 +49,7 @@ jobs:
         run: >-
           python -m unittest -v
           tests.test_advanced_technical
+          tests.test_bootstrap_restore
           tests.test_calendar_fallback
           tests.test_event_calendar
           tests.test_history_cache
@@ -104,9 +105,8 @@ jobs:
           steps.live_release.outcome == 'failure' &&
           steps.calendar_fallback.outcome == 'failure'
         run: >-
-          python -c "import shutil,zipfile;
-          shutil.rmtree('.site',ignore_errors=True);
-          zipfile.ZipFile('.github/bootstrap/public-release.zip').extractall('.site')"
+          python tools/restore_bootstrap_release.py
+          .site .github/bootstrap/public-release.zip
 
       - name: 再次核对发布物
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
