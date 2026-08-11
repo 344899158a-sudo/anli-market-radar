@@ -19,18 +19,30 @@ class PublicSiteBuildTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             output = MODULE.build_public_site(directory)
             index = (output / "index.html").read_text(encoding="utf-8")
+            v3 = (output / "v3.html").read_text(encoding="utf-8")
+            v1 = (output / "v1.html").read_text(encoding="utf-8")
             qqq = (output / "qqq_trendiq.html").read_text(encoding="utf-8")
             playbooks = (output / "playbooks.html").read_text(encoding="utf-8")
             checkin = (output / "checkin.html").read_text(encoding="utf-8")
             watchlist_js = (output / "watchlist_v2.js").read_text(encoding="utf-8")
             v2_js = (output / "v2_app.js").read_text(encoding="utf-8")
 
-            self.assertIn("原则驱动实时机会雷达", index)
-            self.assertIn('href="./watchlist_v2.css', index)
-            self.assertIn('data-detail-href="./qqq_trendiq.html"', index)
+            self.assertIn("ANLI 3.1", index)
+            self.assertIn("ANLI 3.0", v3)
+            self.assertIn("原则驱动实时机会雷达", v1)
+            self.assertIn('href="./watchlist_v2.css', v1)
+            self.assertIn('data-detail-href="./qqq_trendiq.html"', v1)
             self.assertLess(
                 index.index("./public_adapter.js"),
-                index.index("./watchlist_v2.js"),
+                index.index("./v31_app.js"),
+            )
+            self.assertLess(
+                v3.index("./public_adapter.js"),
+                v3.index("./v3_app.js"),
+            )
+            self.assertLess(
+                v1.index("./public_adapter.js"),
+                v1.index("./watchlist_v2.js"),
             )
             self.assertLess(
                 qqq.index("./public_adapter.js"),
@@ -41,10 +53,10 @@ class PublicSiteBuildTests(unittest.TestCase):
                 playbooks.index("./public_adapter.js"),
                 playbooks.index("./v2_app.js"),
             )
-            self.assertNotIn("今日纪律", index)
+            self.assertNotIn("今日纪律", v1)
             self.assertIn('src="./checkin.js', checkin)
             self.assertNotRegex(
-                "\n".join((index, qqq, playbooks, checkin)),
+                "\n".join((index, v3, v1, qqq, playbooks, checkin)),
                 r'(?:href|src|data-detail-href)="/',
             )
             self.assertIn('href="./qqq_trendiq.html?symbol=', watchlist_js)
@@ -65,6 +77,8 @@ class PublicSiteBuildTests(unittest.TestCase):
                 {
                     *MODULE.PUBLIC_ASSETS,
                     "index.html",
+                    "v3.html",
+                    "v1.html",
                     "qqq_trendiq.html",
                     "playbooks.html",
                     "checkin.html",

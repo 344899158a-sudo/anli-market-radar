@@ -23,6 +23,10 @@ PUBLIC_ASSETS = (
     "qqq_trendiq.js",
     "v2_styles.css",
     "v2_app.js",
+    "v3_styles.css",
+    "v3_app.js",
+    "v31_styles.css",
+    "v31_app.js",
     "checkin.css",
     "checkin.js",
     "public_adapter.js",
@@ -45,7 +49,7 @@ def _public_html(source_name: str, *, adapter_before: str | None = None) -> str:
     if adapter_before:
         marker = f'<script src="./{adapter_before}'
         adapter = (
-            '<script src="./public_adapter.js?v=20260731-public1"></script>\n'
+            '<script src="./public_adapter.js?v=20260811-public31"></script>\n'
         )
         if marker not in text:
             raise ValueError(
@@ -68,6 +72,14 @@ def build_public_site(output_root: str | Path) -> Path:
 
     html_files = {
         "index.html": _public_html(
+            "v31_index.html",
+            adapter_before="v31_app.js",
+        ),
+        "v3.html": _public_html(
+            "v3_index.html",
+            adapter_before="v3_app.js",
+        ),
+        "v1.html": _public_html(
             "watchlist_v2.html",
             adapter_before="watchlist_v2.js",
         ),

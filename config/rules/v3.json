@@ -1,0 +1,44 @@
+{
+  "version": "3.0.0",
+  "name": "ANLI unified research operating system",
+  "canonical_risk_source": "config/rules/v2.json",
+  "canonical_risk_rule_version": "2.1.0",
+  "research_state_map": {
+    "READY": {
+      "code": "RESEARCH_READY",
+      "label": "研究就绪",
+      "priority": 1
+    },
+    "WAIT_TRIGGER": {
+      "code": "WAIT_TRIGGER",
+      "label": "等待触发",
+      "priority": 2
+    },
+    "EVIDENCE_INSUFFICIENT": {
+      "code": "EVIDENCE_GAP",
+      "label": "证据不足",
+      "priority": 3
+    },
+    "BLOCKED": {
+      "code": "BLOCKED",
+      "label": "规则阻断",
+      "priority": 4
+    },
+    "NO_TRADE": {
+      "code": "NO_SETUP",
+      "label": "暂无有效剧本",
+      "priority": 5
+    },
+    "UNKNOWN": {
+      "code": "DATA_GAP",
+      "label": "数据不足",
+      "priority": 0
+    }
+  },
+  "compatibility": {
+    "v1_route": "/v1.html",
+    "v2_route": "/playbooks.html",
+    "v3_route": "/",
+    "trendiq_route": "/qqq_trendiq.html"
+  }
+}

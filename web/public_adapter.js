@@ -103,6 +103,34 @@
     }
   }
 
+  async function loadOverlay(name, expectedSchema) {
+    const manifest = await loadManifest();
+    const cacheKey = `${manifest.snapshot_id}:overlay:${name}`;
+    if (moduleCache.has(cacheKey)) return moduleCache.get(cacheKey);
+    const promise = (async () => {
+      const response = await nativeFetch(
+        `./data/${name}.json?t=${encodeURIComponent(manifest.snapshot_id)}`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) throw new Error(`${name} HTTP ${response.status}`);
+      const payload = await response.json();
+      if (payload?.schema_version !== expectedSchema) {
+        throw new Error(`${name} 版本不匹配`);
+      }
+      if (payload?.meta?.snapshot_id !== manifest.snapshot_id) {
+        throw new Error(`${name} 与公开快照不一致`);
+      }
+      return payload;
+    })();
+    moduleCache.set(cacheKey, promise);
+    try {
+      return await promise;
+    } catch (error) {
+      moduleCache.delete(cacheKey);
+      throw error;
+    }
+  }
+
   function sessionLabel(session) {
     return {
       REGULAR: "盘中",
@@ -295,6 +323,16 @@
 
   async function handleGet(url) {
     const path = url.pathname;
+    if (path === "/api/v3/dashboard") {
+      return jsonResponse(await loadOverlay("dashboard-v3", "3.0.0"));
+    }
+    if (path === "/api/v3.1/dashboard") {
+      return jsonResponse(await loadOverlay("dashboard-v31", "3.1.0"));
+    }
+    if (path === "/api/v3.1/portfolio") {
+      const dashboard = await loadOverlay("dashboard-v31", "3.1.0");
+      return jsonResponse(dashboard.portfolio_risk || {});
+    }
     if (path === "/api/status") return jsonResponse(await publicStatus());
     if (path === "/api/v1/dashboard/summary") {
       return jsonResponse(await publicDecisionSummary());
@@ -361,6 +399,12 @@
 
   async function handlePost(url, options) {
     const path = url.pathname;
+    if (path === "/api/v3.1/portfolio") {
+      return errorResponse(
+        "公开版不接收账户或持仓资料；请在本机3.1中录入",
+        405,
+      );
+    }
     if (path === "/api/holding") {
       let payload;
       try {

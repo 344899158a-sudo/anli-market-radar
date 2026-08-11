@@ -63,6 +63,9 @@ jobs:
           tests.test_v2_data_source
           tests.test_v2_engine
           tests.test_v2_overlay
+          tests.test_v3_runtime
+          tests.test_v31_runtime
+          tests.test_v31_overlay
           tests.test_watchlist_config
 
       - name: 检查 Python 与浏览器脚本
@@ -71,6 +74,7 @@ jobs:
           python -m compileall -q src tools
           for file in web/*.js; do node --check "$file"; done
           node --test tests/public_adapter.test.mjs
+          node --test tests/v3_frontend.test.mjs tests/v31_frontend.test.mjs
           node --test cloudflare-worker/test/*.test.js
 
       - name: 生成并验证真实公开快照
@@ -111,6 +115,10 @@ jobs:
       - name: 生成 ANLI 2.1 决策层与完整详情页
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: python tools/build_v2_overlay.py .site
+
+      - name: 生成 ANLI 3.0 与 3.1 只读脱敏层
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: python tools/build_v31_overlay.py .site
 
       - name: 配置 GitHub Pages
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

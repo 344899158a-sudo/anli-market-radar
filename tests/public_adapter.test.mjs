@@ -78,6 +78,21 @@ test("public adapter refreshes manifests and exposes evidence entry points", asy
         fundamentals: { metrics: {} },
       })));
     }
+    if (url.pathname.endsWith("/data/dashboard-v3.json")) {
+      return new Response(JSON.stringify({
+        schema_version: "3.0.0",
+        meta: { snapshot_id: version, public_read_only: true },
+        symbols: [{ symbol: "NVDA" }],
+      }));
+    }
+    if (url.pathname.endsWith("/data/dashboard-v31.json")) {
+      return new Response(JSON.stringify({
+        schema_version: "3.1.0",
+        meta: { snapshot_id: version, public_read_only: true },
+        portfolio_risk: { state: "DATA_GAP", public_redacted: true },
+        symbols: [{ symbol: "NVDA" }],
+      }));
+    }
     return new Response("not found", { status: 404 });
   };
 
@@ -119,6 +134,21 @@ test("public adapter refreshes manifests and exposes evidence entry points", asy
     assert.equal(evidence.news_items.length, 1);
     assert.equal(evidence.sources.length, 2);
     assert.equal(evidence.analysis, undefined);
+
+    const v3 = await (await window.fetch("/api/v3/dashboard")).json();
+    assert.equal(v3.schema_version, "3.0.0");
+    assert.equal(v3.meta.public_read_only, true);
+
+    const v31 = await (await window.fetch("/api/v3.1/dashboard")).json();
+    assert.equal(v31.schema_version, "3.1.0");
+    assert.equal(v31.portfolio_risk.public_redacted, true);
+
+    const rejected = await window.fetch("/api/v3.1/portfolio", {
+      method: "POST",
+      body: JSON.stringify({ account: { equity: 100000 } }),
+    });
+    assert.equal(rejected.status, 405);
+    assert.match((await rejected.json()).error, /公开版不接收/);
 
     clock = Date.parse("2026-08-04T14:00:00Z");
     generatedAt = "2026-08-04T13:58:00Z";

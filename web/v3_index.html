@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#07111d">
+  <title>ANLI 3.0 · 统一决策系统</title>
+  <link rel="stylesheet" href="./v3_styles.css?v=20260808-v3-1">
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="./v3.html" aria-label="ANLI 3.0 首页">
+      <span class="brand-mark">A3</span>
+      <span><strong>ANLI 3.0</strong><small>UNIFIED RESEARCH OS</small></span>
+    </a>
+    <nav class="desktop-nav" aria-label="主导航">
+      <button class="nav-button active" data-view="today">今日决策</button>
+      <button class="nav-button" data-view="market">市场全景</button>
+      <button class="nav-button" data-view="opportunities">机会与剧本</button>
+      <button class="nav-button" data-view="events">事件与证据</button>
+    </nav>
+    <div class="header-actions">
+      <span class="source-pill" id="sourcePill"><i></i><span>正在连接统一数据</span></span>
+      <details class="legacy-menu">
+        <summary>经典版本</summary>
+        <div class="legacy-popover">
+          <a href="./v1.html"><strong>ANLI 1.0</strong><span>完整原则与市场全景</span></a>
+          <a href="./playbooks.html"><strong>ANLI 2.0</strong><span>独立剧本指挥台</span></a>
+        </div>
+      </details>
+      <button class="icon-button" id="refreshButton" aria-label="刷新数据" title="刷新数据">↻</button>
+    </div>
+  </header>
+
+  <main id="app" class="app-shell">
+    <section class="loading-state">
+      <div class="loading-orbit"><span></span></div>
+      <p class="eyebrow">ANLI 3.0</p>
+      <h1>正在建立统一决策视图</h1>
+      <p>汇总原则证据、市场闸门、交易剧本与下一条件</p>
+    </section>
+  </main>
+
+  <nav class="mobile-nav" aria-label="移动端主导航">
+    <button class="active" data-view="today"><span>⌂</span>今日</button>
+    <button data-view="market"><span>◇</span>市场</button>
+    <button data-view="opportunities"><span>◈</span>机会</button>
+    <button data-view="events"><span>◎</span>事件</button>
+  </nav>
+
+  <aside class="drawer" id="detailDrawer" aria-hidden="true">
+    <button class="drawer-backdrop" data-close-drawer aria-label="关闭详情"></button>
+    <div class="drawer-panel">
+      <header class="drawer-header">
+        <div><span class="eyebrow" id="drawerEyebrow">ANLI 3.0 DETAIL</span><h2 id="drawerTitle">个股决策</h2></div>
+        <button class="icon-button" data-close-drawer aria-label="关闭详情">×</button>
+      </header>
+      <div class="drawer-body" id="drawerBody"></div>
+    </div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./v3_app.js?v=20260808-v3-3"></script>
+</body>
+</html>

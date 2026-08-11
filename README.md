@@ -1,10 +1,12 @@
 # ANLI Market Radar
 
-ANLI 原则驱动交易决策系统的公开只读版。1.0 主看板与 2.0 剧本指挥台使用同一份规则、股票池和行情快照；电脑与手机也是同一套响应式页面和数据。
+ANLI 原则驱动交易决策系统的公开只读版。3.1 把统一决策、验证边界和组合风险隐私隔离放在同一入口；1.0、2.0、3.0继续使用同一份规则、股票池和行情快照，电脑与手机也是同一套响应式页面和数据。
 
 ## 页面
 
-- `index.html`：1.0 主看板，覆盖大盘、自然周事件、机会排序和 52 只股票。
+- `index.html`：3.1 验证与风险闭环；公开版不接收或展示账户、持仓、成本和止损资料。
+- `v3.html`：3.0 统一决策系统。
+- `v1.html`：1.0 主看板，覆盖大盘、自然周事件、机会排序和 52 只股票。
 - `playbooks.html`：2.0 剧本指挥台，展示环境、风险闸门、仓位上限和逐股行动剧本。
 - `qqq_trendiq.html?symbol=NVDA`：任意观察池股票的 TrendIQ 多周期技术分析；QQQ 使用同一页面。
 
@@ -23,8 +25,11 @@ GitHub Actions 在美股工作日定时生成公开快照。只有 Python、浏�
 ```bash
 python -m unittest discover -s tests -v
 node --test tests/public_adapter.test.mjs
+node --test tests/v3_frontend.test.mjs tests/v31_frontend.test.mjs
 python tools/export_public_release.py .site --runtime .runtime --timeout-seconds 840
 python tools/validate_public_release.py .site/data
+python tools/build_v2_overlay.py .site
+python tools/build_v31_overlay.py .site
 ```
 
 公开发布物不包含 API 密钥、账户、审计库、私有任务、原始模型响应或内部错误详情。
