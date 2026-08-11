@@ -17,7 +17,7 @@ class BootstrapRestoreError(RuntimeError):
 
 
 def _safe_relative(name: str) -> PurePosixPath:
-    relative = PurePosixPath(name)
+    relative = PurePosixPath(name.replace("\\", "/"))
     if (
         relative.is_absolute()
         or not relative.parts
@@ -42,11 +42,15 @@ def restore_bootstrap_release(
     stage.mkdir(parents=True, exist_ok=False)
     try:
         with zipfile.ZipFile(archive) as bundle:
-            entries = bundle.infolist()
-            if "data/manifest.json" not in {entry.filename for entry in entries}:
+            entries = [
+                (_safe_relative(entry.filename), entry)
+                for entry in bundle.infolist()
+            ]
+            if PurePosixPath("data/manifest.json") not in {
+                relative for relative, _ in entries
+            }:
                 raise BootstrapRestoreError("bootstrap archive has no data/manifest.json")
-            for entry in entries:
-                relative = _safe_relative(entry.filename)
+            for relative, entry in entries:
                 target = stage.joinpath(*relative.parts).resolve()
                 try:
                     target.relative_to(stage)
