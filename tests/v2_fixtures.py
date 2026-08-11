@@ -106,6 +106,7 @@ def bundle(
         },
         "opportunities": opportunities,
         "event-calendar": {
+            "verification_status": "已核验",
             "weeks": [{"label": "本周", "risk_label": "高", "events": events}],
         },
         "sector-pulse": {"state": "STRONG", "state_label": "强", "breadth_pct": 66.0, "above_ma50_pct": 60.0},

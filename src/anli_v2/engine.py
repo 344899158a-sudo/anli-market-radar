@@ -662,6 +662,7 @@ class DecisionEngineV2:
     @staticmethod
     def _flatten_events(calendar: dict[str, Any], now: datetime) -> list[dict[str, Any]]:
         result: list[dict[str, Any]] = []
+        calendar_verified = calendar.get("verification_status") == "已核验"
         for week in calendar.get("weeks") or []:
             for raw in week.get("events") or []:
                 event = dict(raw)
@@ -673,7 +674,13 @@ class DecisionEngineV2:
                 event["days_to_event"] = days
                 event["week_label"] = week.get("label")
                 event["week_risk_label"] = week.get("risk_label")
-                event["verified"] = "确认" in str(event.get("verification") or "")
+                event["calendar_verification_status"] = calendar.get(
+                    "verification_status"
+                )
+                event["verified"] = (
+                    calendar_verified
+                    and "确认" in str(event.get("verification") or "")
+                )
                 result.append(event)
         result.sort(key=lambda item: item.get("at_cn") or item.get("at") or "")
         return result

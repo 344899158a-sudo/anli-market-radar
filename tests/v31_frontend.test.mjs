@@ -42,6 +42,12 @@ test("v3.1 calls the new contract and keeps the 3.0 route visible", () => {
   assert.match(html, /href="\.\/v3\.html"/);
 });
 
+test("v3.1 checks for a newer snapshot every minute while visible", () => {
+  assert.match(source, /AUTO_REFRESH_MS = 60_000/);
+  assert.match(source, /document\.visibilityState === "visible"/);
+  assert.match(source, /load\(\{ silent: true \}\)/);
+});
+
 test("v3.1 public mode hides portfolio entry and blocks writes", () => {
   assert.match(source, /window\.ANLI_PUBLIC_MODE/);
   assert.match(source, /公开版不接收账户或持仓资料/);

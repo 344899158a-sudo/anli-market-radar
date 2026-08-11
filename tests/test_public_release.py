@@ -9,6 +9,7 @@ from tests.test_public_snapshot import FakeEngine, calendar
 
 from semialert.public_snapshot import export_ready_engine_snapshot
 from tools.validate_public_release import (
+    PUBLIC_RELEASE_POLICY_VERSION,
     PublicReleaseValidationError,
     _core_quality_is_acceptable,
     validate_public_release,
@@ -16,6 +17,9 @@ from tools.validate_public_release import (
 
 
 class PublicReleaseTests(unittest.TestCase):
+    def test_release_policy_version_tracks_partial_calendar_safety_rule(self) -> None:
+        self.assertEqual(PUBLIC_RELEASE_POLICY_VERSION, "1.1.0")
+
     def test_valid_bulk_release_contains_every_watchlist_technical_shard(self) -> None:
         with tempfile.TemporaryDirectory() as folder:
             data = Path(folder) / "data"
@@ -67,6 +71,47 @@ class PublicReleaseTests(unittest.TestCase):
         self.assertTrue(_core_quality_is_acceptable("opportunities", envelopes))
         envelopes["opportunities"]["quality"]["missing"] = ["NVDA"]
         self.assertFalse(_core_quality_is_acceptable("opportunities", envelopes))
+
+    def test_complete_but_expired_calendar_does_not_block_fresh_market_release(self) -> None:
+        ranges = [
+            ("2026-08-10", "2026-08-16"),
+            ("2026-08-17", "2026-08-23"),
+            ("2026-08-24", "2026-08-30"),
+            ("2026-08-31", "2026-09-06"),
+        ]
+        weeks = [
+            {
+                "start": start,
+                "end": end,
+                "events": [] if index else [{"id": "cpi-jul"}],
+            }
+            for index, (start, end) in enumerate(ranges)
+        ]
+        envelopes = {
+            "event-calendar": {
+                "quality": {
+                    "status": "PARTIAL",
+                    "missing": ["calendar_verification"],
+                    "errors": [],
+                },
+                "data": {
+                    "generated_at": "2026-08-11T00:48:57+00:00",
+                    "verified_at": "2026-08-06T13:20:00+08:00",
+                    "verification_status": "需要重新核验",
+                    "timezone_note": "美东时间与北京时间",
+                    "methodology": "仅显示有公开来源的事件",
+                    "event_count": 1,
+                    "weeks": weeks,
+                },
+            }
+        }
+        self.assertTrue(_core_quality_is_acceptable("event-calendar", envelopes))
+
+        envelopes["event-calendar"]["data"]["verification_status"] = "已核验"
+        self.assertFalse(_core_quality_is_acceptable("event-calendar", envelopes))
+        envelopes["event-calendar"]["data"]["verification_status"] = "需要重新核验"
+        envelopes["event-calendar"]["quality"]["missing"].append("weeks")
+        self.assertFalse(_core_quality_is_acceptable("event-calendar", envelopes))
 
 
 if __name__ == "__main__":

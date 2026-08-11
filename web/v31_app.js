@@ -10,6 +10,7 @@
   const drawerBody = document.getElementById("drawerBody");
   const toast = document.getElementById("toast");
   const publicMode = Boolean(window.ANLI_PUBLIC_MODE);
+  const AUTO_REFRESH_MS = 60_000;
 
   const state = {
     data: null,
@@ -18,6 +19,7 @@
     playbookFilter: "ALL",
     sectorFilter: "ALL",
     search: "",
+    loading: false,
   };
 
   const stateLabels = {
@@ -479,7 +481,9 @@
     sourcePill.querySelector("span").textContent = `${source.provider || quality.provider || "未知来源"} · ${shortTime(data.meta?.as_of)}`;
   }
 
-  async function load() {
+  async function load({ silent = false } = {}) {
+    if (state.loading) return;
+    state.loading = true;
     try {
       const data = await jsonFetch(`/api/v3.1/dashboard?t=${Date.now()}`);
       if (data.schema_version !== "3.1.0") throw new Error("收到的不是 ANLI 3.1 数据");
@@ -487,9 +491,15 @@
       updateSource(data);
       renderAll();
     } catch (error) {
+      if (silent && state.data) {
+        showToast("自动刷新暂时失败，继续显示上一份快照");
+        return;
+      }
       sourcePill.classList.add("bad");
       sourcePill.querySelector("span").textContent = "3.1 数据不可用";
       app.innerHTML = `<section class="error-card"><span class="eyebrow">ANLI 3.1</span><h1>验证与风险层暂不可用</h1><p>${e(error.message)}</p><p>1.0、2.0、3.0仍然保留，可进入旧版继续查看。</p><div class="detail-actions"><a href="./v3.html">打开 3.0</a><a class="secondary" href="./v1.html">打开 1.0</a></div></section>`;
+    } finally {
+      state.loading = false;
     }
   }
 
@@ -546,6 +556,13 @@
     if (event.key === "Escape") closeDrawer();
   });
   refreshButton.addEventListener("click", refreshData);
+
+  window.setInterval(() => {
+    if (document.visibilityState === "visible") load({ silent: true });
+  }, AUTO_REFRESH_MS);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") load({ silent: true });
+  });
 
   load();
 })();

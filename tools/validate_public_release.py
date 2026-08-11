@@ -22,6 +22,7 @@ STRICT_OK_MODULES = {
     "sector-pulse",
     "opportunities",
 }
+PUBLIC_RELEASE_POLICY_VERSION = "1.1.0"
 
 
 class PublicReleaseValidationError(RuntimeError):
@@ -45,9 +46,40 @@ def _core_quality_is_acceptable(
     quality = envelopes[name].get("quality", {})
     if quality.get("status") == "OK":
         return True
-    if name != "opportunities" or quality.get("status") != "PARTIAL":
+    if quality.get("status") != "PARTIAL" or quality.get("errors"):
         return False
-    if quality.get("errors"):
+    if name == "event-calendar":
+        missing = {str(item) for item in quality.get("missing", []) if item}
+        data = envelopes[name].get("data", {})
+        if not isinstance(data, dict):
+            return False
+        weeks = data.get("weeks")
+        if missing != {"calendar_verification"}:
+            return False
+        if data.get("verification_status") != "需要重新核验":
+            return False
+        if not all(
+            isinstance(data.get(field), str) and data[field].strip()
+            for field in ("generated_at", "verified_at", "timezone_note", "methodology")
+        ):
+            return False
+        if not isinstance(weeks, list) or len(weeks) != 4:
+            return False
+        if not all(
+            isinstance(week, dict)
+            and isinstance(week.get("start"), str)
+            and isinstance(week.get("end"), str)
+            and isinstance(week.get("events"), list)
+            for week in weeks
+        ):
+            return False
+        event_count = data.get("event_count")
+        return (
+            type(event_count) is int
+            and event_count >= 0
+            and event_count == sum(len(week["events"]) for week in weeks)
+        )
+    if name != "opportunities":
         return False
     unlisted_symbols = {
         str(item.get("symbol") or "").upper()

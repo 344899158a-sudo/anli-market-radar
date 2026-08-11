@@ -51,6 +51,17 @@ class DecisionEngineV2Tests(unittest.TestCase):
         missing = {item["key"] for item in stock["criteria"] if item["status"] == "MISSING"}
         self.assertEqual(missing, {"revision", "options"})
 
+    def test_stale_calendar_events_are_visible_but_never_treated_as_verified(self) -> None:
+        amd = opportunity("AMD", drawdown=-3)
+        source = bundle(self.now, [amd], [event("AMD", self.now, 10)])
+        source["modules"]["event-calendar"]["data"][
+            "verification_status"
+        ] = "需要重新核验"
+        stock = self.decide(source)["symbols"][0]
+        self.assertEqual(stock["event"]["calendar_verification_status"], "需要重新核验")
+        self.assertFalse(stock["event"]["verified"])
+        self.assertNotEqual(stock["playbook"]["code"], "EXPECTATION_BUILD")
+
     def test_pre_event_risk_overrides_missing_evidence(self) -> None:
         amd = opportunity("AMD", drawdown=-3)
         source = bundle(self.now, [amd], [event("AMD", self.now, 3)])
