@@ -1,12 +1,15 @@
 (function () {
   "use strict";
 
+  const AUTO_REFRESH_MS = 60_000;
+
   const state = {
     data: null,
     currentView: "decision",
     playbookFilter: "ALL",
     search: "",
     drawerSymbol: null,
+    loading: false,
   };
 
   const app = document.getElementById("app");
@@ -118,12 +121,18 @@
   }
 
   async function loadDashboard(userInitiated = false) {
+    if (state.loading) return;
+    state.loading = true;
     refreshButton.classList.add("spinning");
     try {
       state.data = await fetchDashboard();
       render();
       if (userInitiated) showToast("已读取最新可用快照");
     } catch (error) {
+      if (state.data && !userInitiated) {
+        showToast("自动刷新暂时失败，继续显示上一份快照");
+        return;
+      }
       app.innerHTML = `
         <section class="loading-screen">
           <div class="state-orb blocked">!</div>
@@ -135,6 +144,7 @@
       sourcePill.querySelector("span").textContent = "数据不可用";
       document.getElementById("retryButton")?.addEventListener("click", () => loadDashboard(true));
     } finally {
+      state.loading = false;
       refreshButton.classList.remove("spinning");
     }
   }
@@ -628,6 +638,13 @@
   drawerClose.addEventListener("click", closeDrawer);
   drawerBackdrop.addEventListener("click", closeDrawer);
   document.addEventListener("keydown", event => { if (event.key === "Escape") closeDrawer(); });
+
+  window.setInterval(() => {
+    if (document.visibilityState === "visible") loadDashboard();
+  }, AUTO_REFRESH_MS);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") loadDashboard();
+  });
 
   loadDashboard();
 })();

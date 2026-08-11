@@ -9,6 +9,7 @@
   const drawerEyebrow = document.getElementById("drawerEyebrow");
   const drawerBody = document.getElementById("drawerBody");
   const toast = document.getElementById("toast");
+  const AUTO_REFRESH_MS = 60_000;
 
   const state = {
     data: null,
@@ -17,6 +18,7 @@
     playbookFilter: "ALL",
     sectorFilter: "ALL",
     search: "",
+    loading: false,
   };
 
   const stateLabels = {
@@ -354,7 +356,9 @@
     sourcePill.querySelector("span").textContent = `${source.provider || quality.provider || "未知来源"} · ${shortTime(data.meta?.as_of)}`;
   }
 
-  async function load() {
+  async function load({ silent = false } = {}) {
+    if (state.loading) return;
+    state.loading = true;
     try {
       const data = await jsonFetch(`/api/v3/dashboard?t=${Date.now()}`);
       if (data.schema_version !== "3.0.0") throw new Error("收到的不是 ANLI 3.0 数据");
@@ -362,9 +366,15 @@
       updateSource(data);
       renderAll();
     } catch (error) {
+      if (silent && state.data) {
+        showToast("自动刷新暂时失败，继续显示上一份快照");
+        return;
+      }
       sourcePill.classList.add("bad");
       sourcePill.querySelector("span").textContent = "3.0 数据不可用";
       app.innerHTML = `<section class="error-card"><span class="eyebrow">ANLI 3.0</span><h1>统一决策层暂不可用</h1><p>${e(error.message)}</p><p>旧版仍然保留，可暂时进入 1.0 或 2.0。</p><div class="detail-actions"><a href="./v1.html">打开 1.0</a><a class="secondary" href="./playbooks.html">打开 2.0</a></div></section>`;
+    } finally {
+      state.loading = false;
     }
   }
 
@@ -414,6 +424,13 @@
     if (event.key === "Escape") closeDrawer();
   });
   refreshButton.addEventListener("click", refreshData);
+
+  window.setInterval(() => {
+    if (document.visibilityState === "visible") load({ silent: true });
+  }, AUTO_REFRESH_MS);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") load({ silent: true });
+  });
 
   load();
 })();
