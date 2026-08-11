@@ -49,3 +49,9 @@ test("v2 and v3 preserved routes check for newer snapshots while visible", () =>
     assert.match(script, /继续显示上一份快照/);
   }
 });
+
+test("v3 event view can filter related industry events without hiding macro risk", () => {
+  assert.match(source, /id="eventSectorFilter"/);
+  assert.match(source, /光电与机器视觉（含光模块）/);
+  assert.match(source, /scope\.includes\("全市场"\)/);
+});

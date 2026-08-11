@@ -48,6 +48,13 @@ test("v3.1 checks for a newer snapshot every minute while visible", () => {
   assert.match(source, /load\(\{ silent: true \}\)/);
 });
 
+test("v3.1 exposes portfolio event risk and industry filtering", () => {
+  assert.match(source, /portfolio_event_radar/);
+  assert.match(source, /id="eventSectorFilter"/);
+  assert.match(source, /光电与机器视觉（含光模块）/);
+  assert.match(source, /核对官方来源/);
+});
+
 test("v3.1 public mode hides portfolio entry and blocks writes", () => {
   assert.match(source, /window\.ANLI_PUBLIC_MODE/);
   assert.match(source, /公开版不接收账户或持仓资料/);

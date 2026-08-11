@@ -12,6 +12,7 @@ from typing import Any
 
 
 SCHEMA_VERSION = "3.1.0"
+EVENT_RISK_POLICY_VERSION = "1.0.0"
 
 
 def _decimal(value: Any, fallback: str | None = None) -> Decimal | None:
@@ -244,6 +245,131 @@ def build_portfolio_risk(
     }
 
 
+def build_portfolio_event_radar(
+    *,
+    event_calendar: dict[str, Any],
+    portfolio_risk: dict[str, Any],
+    symbols: list[dict[str, Any]],
+    rules: dict[str, Any],
+) -> dict[str, Any]:
+    policy = rules.get("event_risk") or {}
+    if str(policy.get("version")) != EVENT_RISK_POLICY_VERSION:
+        raise ValueError("ANLI 3.1 event-risk policy version mismatch")
+    weeks = event_calendar.get("weeks") or []
+    first_week = weeks[0] if weeks and isinstance(weeks[0], dict) else {}
+    symbol_sectors = {
+        str(row.get("symbol") or "").upper(): str(row.get("sector") or "").strip()
+        for row in symbols
+        if isinstance(row, dict) and row.get("symbol")
+    }
+    input_positions = ((portfolio_risk.get("input") or {}).get("positions") or [])
+    detailed_positions = portfolio_risk.get("positions") or []
+    focus_symbols = {
+        str(value or "").upper()
+        for value in portfolio_risk.get("marked_holdings") or []
+        if value
+    }
+    focus_symbols.update(
+        str(row.get("symbol") or "").upper()
+        for row in [*input_positions, *detailed_positions]
+        if isinstance(row, dict) and row.get("symbol")
+    )
+    focus_sectors = {
+        symbol_sectors[symbol]
+        for symbol in focus_symbols
+        if symbol_sectors.get(symbol)
+    }
+    verified = event_calendar.get("verification_status") == "已核验"
+    if not focus_symbols and not focus_sectors:
+        return {
+            "policy_version": EVENT_RISK_POLICY_VERSION,
+            "state": "NO_SELECTION",
+            "label": "尚未选择持仓或关注行业",
+            "verification_status": event_calendar.get("verification_status"),
+            "window": {
+                "start": first_week.get("start"),
+                "end": first_week.get("end"),
+                "label": first_week.get("label"),
+            },
+            "focus_symbols": [],
+            "focus_sectors": [],
+            "event_count": 0,
+            "critical_count": 0,
+            "events": [],
+            "decision_effect": "NONE",
+            "next_action": "先在1.0标记持仓或在3.1录入组合；也可使用行业筛选查看相关事件。",
+        }
+
+    priority = {
+        code: index
+        for index, code in enumerate(policy.get("relevance_priority") or [])
+    }
+    global_scopes = {str(item) for item in policy.get("global_scopes") or []}
+    relevant_events: list[dict[str, Any]] = []
+    for raw in first_week.get("events") or []:
+        if not isinstance(raw, dict):
+            continue
+        scopes = {str(item) for item in raw.get("scope") or [] if item}
+        direct = sorted(focus_symbols.intersection(scopes))
+        sector = sorted(focus_sectors.intersection(scopes))
+        global_match = sorted(global_scopes.intersection(scopes))
+        if direct:
+            relevance, label, matched = "DIRECT", "持仓公司事件", direct
+        elif sector:
+            relevance, label, matched = "SECTOR", "持仓行业关联", sector
+        elif global_match:
+            relevance, label, matched = "GLOBAL", "全市场风险", global_match
+        else:
+            continue
+        event = deepcopy(raw)
+        event["relevance"] = relevance
+        event["relevance_label"] = label
+        event["matched"] = matched
+        event["why_relevant"] = (
+            f"直接影响持仓：{'、'.join(matched)}"
+            if relevance == "DIRECT"
+            else f"影响所处行业：{'、'.join(matched)}"
+            if relevance == "SECTOR"
+            else "宏观或指数级事件会影响全部持仓的风险预算"
+        )
+        relevant_events.append(event)
+    relevant_events.sort(
+        key=lambda event: (
+            priority.get(str(event.get("relevance")), 99),
+            str(event.get("at_et") or event.get("at") or ""),
+        )
+    )
+    state = "UNVERIFIED" if not verified else "ACTIVE" if relevant_events else "NO_MATCH"
+    return {
+        "policy_version": EVENT_RISK_POLICY_VERSION,
+        "state": state,
+        "label": (
+            "事件日历需要重新核验"
+            if state == "UNVERIFIED"
+            else "本周持仓与行业风险已匹配"
+            if state == "ACTIVE"
+            else "本周暂无匹配事件"
+        ),
+        "verification_status": event_calendar.get("verification_status"),
+        "window": {
+            "start": first_week.get("start"),
+            "end": first_week.get("end"),
+            "label": first_week.get("label"),
+        },
+        "focus_symbols": sorted(focus_symbols),
+        "focus_sectors": sorted(focus_sectors),
+        "event_count": len(relevant_events),
+        "critical_count": sum(int(event.get("importance") or 0) >= 4 for event in relevant_events),
+        "events": relevant_events,
+        "decision_effect": "NONE",
+        "next_action": (
+            "先重新核验官方日历；核验完成前只把这些事件当作风险线索。"
+            if not verified
+            else "事件前检查盈利垫、止损和同主题总敞口；日历本身不会自动触发交易。"
+        ),
+    }
+
+
 def build_v31_dashboard(
     *,
     base_dashboard: dict[str, Any],
@@ -265,6 +391,12 @@ def build_v31_dashboard(
     dashboard["meta"]["research_only"] = True
     dashboard["validation"] = deepcopy(validation)
     dashboard["portfolio_risk"] = deepcopy(portfolio_risk)
+    dashboard["portfolio_event_radar"] = build_portfolio_event_radar(
+        event_calendar=dashboard.get("events") or {},
+        portfolio_risk=portfolio_risk,
+        symbols=dashboard.get("symbols") or [],
+        rules=rules,
+    )
     dashboard["model_labels"] = deepcopy(rules.get("model_labels") or {})
     dashboard["command"]["portfolio_state"] = portfolio_risk.get("state")
     dashboard["command"]["validation_state"] = validation.get("status")
@@ -292,4 +424,3 @@ def build_v31_dashboard(
         "automatic_ordering": False,
     }
     return dashboard
-

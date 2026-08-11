@@ -17,6 +17,7 @@
     stateFilter: "ALL",
     playbookFilter: "ALL",
     sectorFilter: "ALL",
+    eventSectorFilter: "ALL",
     search: "",
     loading: false,
   };
@@ -272,10 +273,22 @@
     </section>`;
   }
 
+  function eventSectorPicker(data) {
+    const sectors = [...new Set((data.symbols || []).map(row => row.sector).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, "zh-CN"));
+    return `<div class="filter-bar"><select id="eventSectorFilter" aria-label="事件行业筛选"><option value="ALL">全部行业事件</option>${sectors.map(sector => { const label=sector === "光电与机器视觉" ? "光电与机器视觉（含光模块）" : sector; return `<option value="${e(sector)}" ${state.eventSectorFilter === sector ? "selected" : ""}>${e(label)}</option>`; }).join("")}</select><span class="eyebrow">筛选后仍保留全市场宏观风险</span></div>`;
+  }
+
+  function eventMatchesSector(event) {
+    if (state.eventSectorFilter === "ALL") return true;
+    const scope = Array.isArray(event.scope) ? event.scope : [];
+    return scope.includes(state.eventSectorFilter) || scope.includes("全市场") || scope.includes("QQQ");
+  }
+
   function weekCards(data) {
     const weeks = Array.isArray(data.events?.weeks) ? data.events.weeks : [];
     if (!weeks.length) return `<div class="empty-state">自然周事件正在核验</div>`;
-    return `<div class="week-grid">${weeks.map(week => `<article class="week-card"><header><span class="eyebrow">${e(week.label)}</span><span class="risk-${e(week.risk_score)}">${e(week.risk_label)}</span></header><h3>${e(week.start)} — ${e(week.end)}</h3><p>${e(week.action)}</p><div class="event-list">${(week.events || []).map(event => `<div class="event-item"><strong>${e(event.title)}</strong><span>${shortTime(event.at_cn || event.at)} · ${e(event.verification || "待核验")}</span></div>`).join("") || `<div class="event-item"><strong>本周暂无已核验事件</strong></div>`}</div></article>`).join("")}</div>`;
+    return `<div class="week-grid">${weeks.map(week => { const all=week.events||[]; const visible=all.filter(eventMatchesSector); return `<article class="week-card"><header><span class="eyebrow">${e(week.label)} · ${visible.length}/${all.length}</span><span class="risk-${e(week.risk_score)}">${e(week.risk_label)}</span></header><h3>${e(week.start)} — ${e(week.end)}</h3><p>${e(week.action)}</p><div class="event-list">${visible.map(event => `<div class="event-item"><strong>${e(event.title)}</strong><span>${shortTime(event.at_cn || event.at)} · ${e(event.verification || "待核验")}</span><small>影响：${e((event.scope || []).join("、") || "待确认")}</small></div>`).join("") || `<div class="event-item"><strong>该行业本周暂无已核验事件</strong></div>`}</div></article>`; }).join("")}</div>`;
   }
 
   function alertList(data, limit = 16) {
@@ -288,7 +301,7 @@
     return `<section class="view ${state.currentView === "events" ? "active" : ""}" data-view-panel="events">
       ${qualityBanner(data)}
       <div class="page-head"><div><span class="eyebrow">EVENTS + EVIDENCE</span><h1>事件与证据</h1></div><p>${e(data.events?.timezone_note || "事件按自然周展示，交易日口径以美东时区为准。")}</p></div>
-      ${weekCards(data)}
+      <section class="panel"><div class="panel-header"><div><span class="eyebrow">INDUSTRY EVENT FILTER</span><h2>未来四周行业风险</h2><p>公司财报会同时按直接标的、所属行业和关联产业链标记。</p></div></div>${eventSectorPicker(data)}${weekCards(data)}</section>
       <div class="section-grid"><section class="panel"><div class="panel-header"><div><span class="eyebrow">VERIFICATION</span><h2>事件核验状态</h2><p>${e(data.events?.verification_status || "待核验")} · ${e(data.events?.verified_at || "时间未知")}</p></div></div><div class="constraint-list"><div class="constraint-item"><strong>自然周口径</strong><p>周一至周日；周日查看时从次日周一开始，不使用滚动未来7天。</p></div><div class="constraint-item"><strong>执行边界</strong><p>官方事件日期与研究快照不等于实时价格确认，交易前仍需券商数据。</p></div></div></section><section class="panel"><div class="panel-header"><div><span class="eyebrow">RECENT EVIDENCE</span><h2>AI、新闻与SEC提醒</h2><p>AI只做第二层复核，不直接改变规则与交易状态</p></div></div>${alertList(data, 12)}</section></div>
     </section>`;
   }
@@ -414,6 +427,11 @@
   });
 
   document.addEventListener("change", event => {
+    if (event.target.id === "eventSectorFilter") {
+      state.eventSectorFilter = event.target.value;
+      renderAll();
+      return;
+    }
     if (event.target.id === "stateFilter") state.stateFilter = event.target.value;
     if (event.target.id === "playbookFilter") state.playbookFilter = event.target.value;
     if (event.target.id === "sectorFilter") state.sectorFilter = event.target.value;

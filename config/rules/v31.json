@@ -32,6 +32,13 @@
     "caution_utilization_fraction": "0.80",
     "fail_closed_on_missing_position": true
   },
+  "event_risk": {
+    "version": "1.0.0",
+    "window": "first-natural-week",
+    "global_scopes": ["全市场", "QQQ"],
+    "relevance_priority": ["DIRECT", "SECTOR", "GLOBAL"],
+    "note": "只做持仓与行业事件的前置风险排序；事件不会自动改变交易状态或生成订单。"
+  },
   "model_labels": {
     "market_score": {
       "label": "趋势环境强度",

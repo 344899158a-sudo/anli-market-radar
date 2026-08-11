@@ -83,6 +83,8 @@ class V31OverlayTests(unittest.TestCase):
             self.assertTrue(v31["portfolio_risk"]["public_redacted"])
             self.assertNotIn("account_equity", v31["portfolio_risk"])
             self.assertNotIn("input", v31["portfolio_risk"])
+            self.assertEqual(v31["portfolio_event_radar"]["state"], "NO_SELECTION")
+            self.assertEqual(v31["portfolio_event_radar"]["focus_symbols"], [])
             self.assertEqual(v31["validation"]["primary_sample_count"], 0)
             assert_no_forbidden_fields(v3)
             assert_no_forbidden_fields(v31)

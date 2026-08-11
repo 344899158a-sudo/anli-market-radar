@@ -9,7 +9,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from semialert.v31_runtime import build_portfolio_risk, build_v31_dashboard  # noqa: E402
+from semialert.v31_runtime import (  # noqa: E402
+    build_portfolio_event_radar,
+    build_portfolio_risk,
+    build_v31_dashboard,
+)
 
 
 class V31RuntimeTests(unittest.TestCase):
@@ -45,6 +49,65 @@ class V31RuntimeTests(unittest.TestCase):
             market_allocation_cap_pct="45",
             caution_utilization_fraction="0.80",
         )
+
+    @staticmethod
+    def event_calendar(status="已核验"):
+        return {
+            "verification_status": status,
+            "weeks": [{
+                "label": "本周",
+                "start": "2026-08-10",
+                "end": "2026-08-16",
+                "events": [
+                    {"id": "lite", "title": "LITE财报", "at": "2026-08-11T17:00:00-04:00", "importance": 4, "scope": ["LITE", "光电与机器视觉", "半导体"]},
+                    {"id": "glw", "title": "GLW行业会", "at": "2026-08-12T10:00:00-04:00", "importance": 3, "scope": ["光电与机器视觉"]},
+                    {"id": "cpi", "title": "CPI", "at": "2026-08-12T08:30:00-04:00", "importance": 4, "scope": ["全市场"]},
+                ],
+            }],
+        }
+
+    def event_radar(self, marked, status="已核验"):
+        portfolio = {
+            "marked_holdings": marked,
+            "input": {"positions": []},
+            "positions": [],
+        }
+        return build_portfolio_event_radar(
+            event_calendar=self.event_calendar(status),
+            portfolio_risk=portfolio,
+            symbols=[
+                {"symbol": "LITE", "sector": "光电与机器视觉"},
+                {"symbol": "AMD", "sector": "半导体"},
+            ],
+            rules=self.rules,
+        )
+
+    def test_event_radar_prioritizes_direct_then_sector_then_global_risk(self):
+        result = self.event_radar(["LITE"])
+        self.assertEqual(result["state"], "ACTIVE")
+        self.assertEqual(
+            [event["relevance"] for event in result["events"]],
+            ["DIRECT", "SECTOR", "GLOBAL"],
+        )
+        self.assertEqual(result["policy_version"], "1.0.0")
+        self.assertEqual(result["decision_effect"], "NONE")
+
+    def test_event_radar_maps_related_company_to_held_industry(self):
+        result = self.event_radar(["AMD"])
+        lite = next(event for event in result["events"] if event["id"] == "lite")
+        self.assertEqual(lite["relevance"], "SECTOR")
+        self.assertEqual(lite["matched"], ["半导体"])
+
+    def test_event_radar_fails_closed_when_calendar_needs_verification(self):
+        result = self.event_radar(["LITE"], "需要重新核验")
+        self.assertEqual(result["state"], "UNVERIFIED")
+        self.assertEqual(result["decision_effect"], "NONE")
+        self.assertIn("重新核验", result["next_action"])
+
+    def test_event_radar_requires_a_holding_or_sector_selection(self):
+        result = self.event_radar([])
+        self.assertEqual(result["state"], "NO_SELECTION")
+        self.assertEqual(result["events"], [])
 
     def test_missing_portfolio_fails_closed(self):
         result = self.risk(None, ["NVDA"])
@@ -118,4 +181,3 @@ class V31RuntimeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -5,7 +5,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 
-VERIFIED_AT = "2026-08-06T13:20:00+08:00"
+VERIFIED_AT = "2026-08-11T09:11:12+08:00"
 ET = ZoneInfo("America/New_York")
 
 FED = ("Federal Reserve", "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm", "官方日历确认")
@@ -63,6 +63,10 @@ EVENTS = (
            "影响单位劳动力成本与通胀判断。", ["全市场"]),
     _event("nfp-jul", "2026-08-07T08:30:00-04:00", "宏观", "美国 7月非农就业报告", 4, BLS,
            "就业、失业率与工资共同影响利率路径。", ["全市场"]),
+    _event("lite-fy26-q4", "2026-08-11T17:00:00-04:00", "财报", "Lumentum（LITE）FY2026 Q4及全年财报", 4,
+           ("Lumentum Investor Relations", "https://investor.lumentum.com/financial-news-releases/news-details/2026/Lumentum-Announces-Reporting-Date-for-Fourth-Quarter-and-Fiscal-Year-2026-Results/default.aspx", "公司公告确认"),
+           "美股收盘后发布，17:00 ET电话会；关注AI数据中心光模块需求、云网络资本开支、毛利率与下一财年指引对光通信链的映射。",
+           ["LITE", "光电与机器视觉", "光模块", "网络与通信", "半导体", "AI数据中心"]),
     _event("cpi-jul", "2026-08-12T08:30:00-04:00", "宏观", "美国 7月 CPI", 4, BLS,
            "通胀核心事件，盘前波动风险高。", ["全市场"]),
     _event("ppi-jul", "2026-08-13T08:30:00-04:00", "宏观", "美国 7月 PPI", 3, BLS,

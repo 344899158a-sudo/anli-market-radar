@@ -46,14 +46,29 @@ class EventCalendarTests(unittest.TestCase):
     def test_verification_clock_is_deterministic(self):
         fresh = build_event_calendar(
             date(2026, 8, 3),
-            now=datetime(2026, 8, 3, 10, 30, tzinfo=timezone.utc),
+            now=datetime(2026, 8, 11, 2, 30, tzinfo=timezone.utc),
         )
         stale = build_event_calendar(
             date(2026, 8, 9),
-            now=datetime(2026, 8, 9, 10, 30, tzinfo=timezone.utc),
+            now=datetime(2026, 8, 14, 10, 30, tzinfo=timezone.utc),
         )
         self.assertEqual(fresh["verification_status"], "已核验")
         self.assertEqual(stale["verification_status"], "需要重新核验")
+
+    def test_lite_earnings_is_officially_traced_and_maps_to_related_industries(self):
+        result = build_event_calendar(
+            date(2026, 8, 11),
+            now=datetime(2026, 8, 11, 2, 30, tzinfo=timezone.utc),
+        )
+        lite = next(
+            event
+            for week in result["weeks"]
+            for event in week["events"]
+            if event["id"] == "lite-fy26-q4"
+        )
+        self.assertEqual(lite["at_et"], "2026-08-11T17:00:00-04:00")
+        self.assertEqual(lite["source"], "Lumentum Investor Relations")
+        self.assertTrue({"LITE", "光模块", "半导体"}.issubset(set(lite["scope"])))
 
     def test_excludes_events_outside_window(self):
         result = build_event_calendar(date(2026, 8, 24))
