@@ -27,6 +27,8 @@ PUBLIC_ASSETS = (
     "v3_app.js",
     "v31_styles.css",
     "v31_app.js",
+    "v32_styles.css",
+    "v32_app.js",
     "checkin.css",
     "checkin.js",
     "public_adapter.js",
@@ -72,6 +74,10 @@ def build_public_site(output_root: str | Path) -> Path:
 
     html_files = {
         "index.html": _public_html(
+            "v32_index.html",
+            adapter_before="v32_app.js",
+        ),
+        "v3.1.html": _public_html(
             "v31_index.html",
             adapter_before="v31_app.js",
         ),

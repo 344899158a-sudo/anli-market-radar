@@ -50,7 +50,7 @@ class EventCalendarTests(unittest.TestCase):
         )
         stale = build_event_calendar(
             date(2026, 8, 9),
-            now=datetime(2026, 8, 14, 10, 30, tzinfo=timezone.utc),
+            now=datetime(2026, 8, 16, 10, 30, tzinfo=timezone.utc),
         )
         self.assertEqual(fresh["verification_status"], "已核验")
         self.assertEqual(stale["verification_status"], "需要重新核验")

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#071018">
+  <title>ANLI 3.2 · 私人持仓研究台</title>
+  <link rel="stylesheet" href="./v32_styles.css?v=20260813-v32-1">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="ANLI 3.2 首页"><b>A3.2</b><span><strong>ANLI 3.2</strong><small>PRIVATE HOLDING INTELLIGENCE</small></span></a>
+    <nav class="nav" aria-label="主导航">
+      <button class="active" data-view="holdings">我的持仓</button>
+      <button data-view="events">四周事件</button>
+      <button data-view="reversion">回归研究</button>
+    </nav>
+    <div class="actions">
+      <span class="live" id="liveState"><i></i><span>正在连接</span></span>
+      <details class="versions"><summary>历史版本</summary><div>
+        <a href="./v1.html">1.0 原则全景</a><a href="./playbooks.html">2.0 剧本系统</a>
+        <a href="./v3.html">3.0 统一决策</a><a href="./v3.1.html">3.1 验证风控</a>
+      </div></details>
+      <button class="refresh" id="refresh" aria-label="刷新">↻</button>
+    </div>
+  </header>
+  <main id="app" class="shell">
+    <section class="loading"><span></span><p>ANLI 3.2</p><h1>正在建立你的持仓事件图谱</h1><small>连接实时行情、四周事件与异常偏离研究</small></section>
+  </main>
+  <nav class="mobile-nav">
+    <button class="active" data-view="holdings"><i>◆</i>持仓</button>
+    <button data-view="events"><i>◷</i>事件</button>
+    <button data-view="reversion"><i>⌁</i>回归</button>
+  </nav>
+  <dialog id="holdingDialog">
+    <form method="dialog" id="holdingForm">
+      <header><div><small>PRIVATE · LOCAL ONLY</small><h2>管理我的持仓</h2><p>只填股票代码即可。数量、成本与止损完全可选。</p></div><button value="cancel" aria-label="关闭">×</button></header>
+      <div class="dialog-body">
+        <label class="ticker-entry"><span>添加股票</span><div><input id="tickerInput" list="symbolList" placeholder="例如 NVDA、LITE" autocomplete="off"><button type="button" id="addTicker">添加</button></div></label>
+        <datalist id="symbolList"></datalist>
+        <p class="form-hint" id="editorHint">支持列表内选择，也支持输入其他有效美股代码；新代码会先验证公开行情。</p>
+        <div id="positionEditor" class="position-editor"></div>
+      </div>
+      <footer><span id="saveHint">持仓保存在本机，不会上传到公开网站。</span><div><button value="cancel" class="ghost">取消</button><button type="button" id="saveHoldings" class="primary">确认保存</button></div></footer>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./v32_app.js?v=20260813-v32-1"></script>
+</body>
+</html>

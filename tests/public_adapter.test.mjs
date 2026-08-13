@@ -88,9 +88,10 @@ test("public adapter refreshes manifests and exposes evidence entry points", asy
     if (url.pathname.endsWith("/data/dashboard-v31.json")) {
       return new Response(JSON.stringify({
         schema_version: "3.1.0",
-        meta: { snapshot_id: version, public_read_only: true },
+        meta: { snapshot_id: version, public_read_only: true, as_of: overviewAsOf },
+        events: { verification_status: "已核验", verified_at: generatedAt, weeks: [] },
         portfolio_risk: { state: "DATA_GAP", public_redacted: true },
-        symbols: [{ symbol: "NVDA" }],
+        symbols: [{ symbol: "NVDA", name: "NVIDIA", sector: "美股巨头", sector_benchmark: "QQQ", price: 200 }],
       }));
     }
     return new Response("not found", { status: 404 });
@@ -142,6 +143,23 @@ test("public adapter refreshes manifests and exposes evidence entry points", asy
     const v31 = await (await window.fetch("/api/v3.1/dashboard")).json();
     assert.equal(v31.schema_version, "3.1.0");
     assert.equal(v31.portfolio_risk.public_redacted, true);
+
+    const savedV32 = await window.fetch("/api/v3.2/holdings", {
+      method: "POST", body: JSON.stringify({ positions: [{ symbol: "NVDA" }] }),
+    });
+    assert.equal(savedV32.status, 201);
+    const v32 = await (await window.fetch("/api/v3.2/dashboard")).json();
+    assert.equal(v32.schema_version, "3.2.0");
+    assert.equal(v32.private_holdings.count, 1);
+    assert.equal(v32.private_holdings.local_only, true);
+    assert.equal(v32.holding_cards[0].mean_reversion.state, "DATA_GAP");
+    assert.equal(v32.meta.automatic_ordering, false);
+
+    const unknownV32 = await window.fetch("/api/v3.2/holdings", {
+      method: "POST", body: JSON.stringify({ positions: [{ symbol: "UNKNOWN" }] }),
+    });
+    assert.equal(unknownV32.status, 400);
+    assert.match((await unknownV32.json()).error, /公开股票池/);
 
     const rejected = await window.fetch("/api/v3.1/portfolio", {
       method: "POST",

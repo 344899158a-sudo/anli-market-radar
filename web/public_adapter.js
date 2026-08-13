@@ -25,6 +25,7 @@
   );
 
   const storageKey = "anli-public-local-holdings";
+  const v32StorageKey = "anli-public-v32-holdings";
 
   function localHoldings() {
     try {
@@ -37,6 +38,85 @@
 
   function saveLocalHoldings(values) {
     localStorage.setItem(storageKey, JSON.stringify([...values].sort()));
+  }
+
+  function localV32Positions() {
+    try {
+      const values = JSON.parse(localStorage.getItem(v32StorageKey) || "[]");
+      return Array.isArray(values) ? values.filter(item => item && item.symbol) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveLocalV32Positions(values) {
+    localStorage.setItem(v32StorageKey, JSON.stringify(values));
+  }
+
+  const publicThemes = {
+    "光模块": {symbols:["LITE","COHR","MRVL","AVGO","ANET"],aliases:["光通信","AI数据中心","电光互联"]},
+    "AI数据中心": {symbols:["NVDA","AMD","MRVL","AVGO","ANET","MSFT","AMZN","META"],aliases:["AI云","云资本开支","加速计算"]},
+    "存储": {symbols:["MU","SNDK","WDC","STX","DELL"],aliases:["HBM","NAND","DRAM"]},
+    "半导体设备": {symbols:["AMAT","LRCX","KLAC","ASML","FORM"],aliases:["晶圆设备","先进封装","测试设备"]},
+  };
+
+  function publicHoldingEvents(position, calendar) {
+    const symbol = String(position.symbol || "").toUpperCase();
+    const sector = String(position.sector || "未分类");
+    const themes = new Set();
+    Object.entries(publicThemes).forEach(([name, profile]) => {
+      if (profile.symbols.includes(symbol)) {
+        themes.add(name);
+        profile.aliases.forEach(alias => themes.add(alias));
+      }
+    });
+    const verified = calendar?.verification_status === "已核验";
+    const rows = [];
+    (calendar?.weeks || []).slice(0, 4).forEach(week => {
+      (week.events || []).forEach(raw => {
+        const scopes = new Set((raw.scope || []).map(String));
+        const theme = [...themes].filter(item => scopes.has(item));
+        let relevance = null, relevanceLabel = null, matched = [];
+        if (scopes.has(symbol)) [relevance,relevanceLabel,matched] = ["DIRECT","公司直接事件",[symbol]];
+        else if (theme.length) [relevance,relevanceLabel,matched] = ["SUPPLY_CHAIN","产业链关联",theme];
+        else if (scopes.has(sector)) [relevance,relevanceLabel,matched] = ["SECTOR","行业关联",[sector]];
+        else if (scopes.has("全市场") || scopes.has("QQQ")) [relevance,relevanceLabel,matched] = ["GLOBAL","全市场事件",["全市场"]];
+        if (!relevance) return;
+        rows.push({...raw, verified:verified && !String(raw.verification || "").includes("暂定"),
+          week:{index:week.index,label:week.label,start:week.start,end:week.end}, relevance,
+          relevance_label:relevanceLabel, matched, why_relevant:`${relevanceLabel}：${matched.join("、")}`});
+      });
+    });
+    const priority = {DIRECT:0,SUPPLY_CHAIN:1,SECTOR:2,GLOBAL:3};
+    return rows.sort((a,b) => (priority[a.relevance]-priority[b.relevance]) || String(a.at || "").localeCompare(String(b.at || "")));
+  }
+
+  async function publicV32Dashboard() {
+    const base = await loadOverlay("dashboard-v31", "3.1.0");
+    const positions = localV32Positions();
+    const symbols = new Map((base.symbols || []).map(row => [String(row.symbol || "").toUpperCase(), row]));
+    const privatePositions = positions.map(raw => {
+      const market = symbols.get(String(raw.symbol || "").toUpperCase()) || {};
+      return {...raw, symbol:String(raw.symbol || "").toUpperCase(), name:market.name || raw.symbol,
+        sector:raw.sector || market.sector || "未分类", sector_benchmark:market.sector_benchmark || "QQQ",
+        price:market.price, quote_time:market.quote_time, source:"公开脱敏快照", data_state:market.symbol?"READY":"DATA_GAP"};
+    });
+    const calendar = base.events || {};
+    const bySymbol = Object.fromEntries(privatePositions.map(row => [row.symbol, publicHoldingEvents(row, calendar)]));
+    const cards = privatePositions.map(row => ({...row,events:bySymbol[row.symbol] || [],mean_reversion:{
+      version:"1.0.0",state:"DATA_GAP",label:"公开基准历史不足",execution_ready:false,research_only:true,
+      sector_benchmark:row.sector_benchmark,metrics:{},nearest_event:(bySymbol[row.symbol] || []).find(item => item.verified) || null,
+      evidence:["公开站不上传私人持仓，也不发布足以重建私人组合的联合基准历史。"],
+      invalidation:"数据不足时不生成均值回归结论。",next_condition:"在本机ANLI 3.2使用完整历史重算。",automatic_ordering:false,
+    }}));
+    const snapshotId = base.meta?.snapshot_id || "public-snapshot";
+    return {...base,schema_version:"3.2.0",system_version:"ANLI 3.2",rule_version:"3.2.0",
+      meta:{...base.meta,public_read_only:true,automatic_ordering:false,research_only:true},
+      private_holdings:{state:privatePositions.length?"ACTIVE":"EMPTY",count:privatePositions.length,positions:privatePositions,
+        profile:{snapshot_id:`browser-${snapshotId}`,created_at:base.meta?.as_of},local_only:true,automatic_ordering:false},
+      holding_event_graph:{version:"2.0.0",state:privatePositions.length?(calendar.verification_status==="已核验"?"ACTIVE":"UNVERIFIED"):"NO_SELECTION",
+        verification_status:calendar.verification_status,verified_at:calendar.verified_at,weeks:(calendar.weeks || []).slice(0,4),leads:[],by_symbol:bySymbol,
+        decision_eligible:false,automatic_ordering:false,lead_errors:[]},holding_cards:cards};
   }
 
   async function loadManifest(force = false) {
@@ -323,6 +403,12 @@
 
   async function handleGet(url) {
     const path = url.pathname;
+    if (path === "/api/v3.2/dashboard") {
+      return jsonResponse(await publicV32Dashboard());
+    }
+    if (path === "/api/v3.2/holdings") {
+      return jsonResponse((await publicV32Dashboard()).private_holdings);
+    }
     if (path === "/api/v3/dashboard") {
       return jsonResponse(await loadOverlay("dashboard-v3", "3.0.0"));
     }
@@ -399,6 +485,29 @@
 
   async function handlePost(url, options) {
     const path = url.pathname;
+    if (path === "/api/v3.2/holdings") {
+      let payload;
+      try { payload = JSON.parse(String(options.body || "{}")); }
+      catch (_) { return errorResponse("请求格式错误", 400); }
+      if (!Array.isArray(payload.positions)) return errorResponse("必须提供持仓列表", 400);
+      if (payload.positions.length > 30) return errorResponse("最多跟踪30只持仓", 400);
+      const base = await loadOverlay("dashboard-v31", "3.1.0");
+      const allowed = new Set((base.symbols || []).map(row => String(row.symbol || "").toUpperCase()));
+      const seen = new Set(), normalized = [];
+      for (const raw of payload.positions) {
+        const symbol = String(raw?.symbol || "").trim().toUpperCase();
+        if (!/^[A-Z][A-Z0-9.-]{0,9}$/.test(symbol)) return errorResponse(`股票代码格式无效：${symbol || "空"}`, 400);
+        if (!allowed.has(symbol)) return errorResponse(`${symbol}不在当前公开股票池；可在本机3.2验证任意美股代码`, 400);
+        if (seen.has(symbol)) return errorResponse(`股票代码重复：${symbol}`, 400);
+        seen.add(symbol);
+        const row = {symbol};
+        for (const field of ["sector","quantity","average_cost","stop_price"]) if (raw[field] !== undefined && raw[field] !== "") row[field] = String(raw[field]);
+        normalized.push(row);
+      }
+      saveLocalV32Positions(normalized.sort((a,b) => a.symbol.localeCompare(b.symbol)));
+      return jsonResponse({snapshot_id:`browser-holdings-${Date.now()}`,created_at:new Date().toISOString(),
+        payload:{positions:normalized},local_only:true,automatic_ordering:false}, 201);
+    }
     if (path === "/api/v3.1/portfolio") {
       return errorResponse(
         "公开版不接收账户或持仓资料；请在本机3.1中录入",

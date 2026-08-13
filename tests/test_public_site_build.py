@@ -19,6 +19,7 @@ class PublicSiteBuildTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             output = MODULE.build_public_site(directory)
             index = (output / "index.html").read_text(encoding="utf-8")
+            v31 = (output / "v3.1.html").read_text(encoding="utf-8")
             v3 = (output / "v3.html").read_text(encoding="utf-8")
             v1 = (output / "v1.html").read_text(encoding="utf-8")
             qqq = (output / "qqq_trendiq.html").read_text(encoding="utf-8")
@@ -27,14 +28,15 @@ class PublicSiteBuildTests(unittest.TestCase):
             watchlist_js = (output / "watchlist_v2.js").read_text(encoding="utf-8")
             v2_js = (output / "v2_app.js").read_text(encoding="utf-8")
 
-            self.assertIn("ANLI 3.1", index)
+            self.assertIn("ANLI 3.2", index)
+            self.assertIn("ANLI 3.1", v31)
             self.assertIn("ANLI 3.0", v3)
             self.assertIn("原则驱动实时机会雷达", v1)
             self.assertIn('href="./watchlist_v2.css', v1)
             self.assertIn('data-detail-href="./qqq_trendiq.html"', v1)
             self.assertLess(
                 index.index("./public_adapter.js"),
-                index.index("./v31_app.js"),
+                index.index("./v32_app.js"),
             )
             self.assertLess(
                 v3.index("./public_adapter.js"),
@@ -77,6 +79,7 @@ class PublicSiteBuildTests(unittest.TestCase):
                 {
                     *MODULE.PUBLIC_ASSETS,
                     "index.html",
+                    "v3.1.html",
                     "v3.html",
                     "v1.html",
                     "qqq_trendiq.html",

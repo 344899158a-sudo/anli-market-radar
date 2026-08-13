@@ -5,7 +5,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 
-VERIFIED_AT = "2026-08-11T09:11:12+08:00"
+VERIFIED_AT = "2026-08-13T08:45:00+08:00"
 ET = ZoneInfo("America/New_York")
 
 FED = ("Federal Reserve", "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm", "官方日历确认")
@@ -83,6 +83,10 @@ EVENTS = (
            "第三个星期五；关注临近收盘的对冲与再平衡波动。", ["全市场"]),
     _event("gdp2-pce-jul", "2026-08-26T08:30:00-04:00", "宏观", "美国 Q2 GDP 二次估计 + 7月PCE", 4, BEA,
            "增长修正与核心通胀同日发布，可能重定价利率路径与科技股估值。", ["全市场", "QQQ"]),
+    _event("nvda-fy27-q2", "2026-08-26T17:00:00-04:00", "财报", "NVIDIA（NVDA）FY2027 Q2财报", 4,
+           ("NVIDIA Investor Relations", "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Sets-Conference-Call-for-Second-Quarter-Financial-Results/default.aspx", "公司公告确认"),
+           "约16:20 ET发布书面评论，17:00 ET电话会；关注AI加速计算需求、数据中心增长、供应与毛利率指引。",
+           ["NVDA", "半导体", "AI数据中心", "AI云", "QQQ"]),
 )
 
 
